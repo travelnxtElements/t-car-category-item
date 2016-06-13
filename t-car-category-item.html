@@ -1,27 +1,91 @@
 <link rel="import" href="../polymer/polymer.html">
-
+<link rel="import" href="../t-image/t-image.html">
 <dom-module id="t-car-category-item">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-    <h2>Hello [[prop1]]</h2>
-  </template>
-
-  <script>
+    <template>
+        <style>
+        :host {
+            display: block;
+        }
+        </style>
+        <t-image></t-image>
+        <div>{{category}}</div>
+        <div>{{_priceText}}</div>
+        <div>{{capacityRange}}</div>
+        <div>{{baggageRange}}</div>
+        <div>{{transmission}}</div>
+        <div>{{doorsRange}}</div>
+        <div>{{airConditioning}}</div>
+    </template>
+    <script>
     Polymer({
 
-      is: 't-car-category-item',
+        is: 't-car-category-item',
 
-      properties: {
-        prop1: {
-          type: String,
-          value: 't-car-category-item',
+        properties: {
+            url: {
+                type: String,
+                value: '',
+            },
+            category: {
+                type: String,
+                value: '',
+            },
+            price: {
+                type: Number,
+                value: 0,
+                observer: '_priceChanged'
+            },
+            _priceText: {
+                type: String,
+                value: '',
+            },
+            currency: {
+                type: String,
+                value: 'USD',
+            },
+            capacityRange: {
+                type: String,
+                value: '',
+            },
+            baggageRange: {
+                type: String,
+                value: '',
+            },
+            transmission: {
+                type: Boolean,
+                value: true,
+            },
+            doorsRange: {
+                type: Number,
+                value: '',
+            },
+            airConditioning: {
+                type: Boolean,
+                value: false
+            },
+            rentDuration: {
+                type: number,
+                value: 1
+            },
+            _model: {
+                type: Object,
+                value: null,
+                observer: '_modelChanged'
+            }
         },
-      },
+
+        _modelChanged: function() {
+            if (!this._model) {
+                return;
+            }
+
+            
+        },
+
+        _priceChanged: function() {
+            this._priceText = this.currency + ' ' + (this.price / this.rentDuration) + 'PER DAY';
+        }
 
     });
-  </script>
+    </script>
 </dom-module>
