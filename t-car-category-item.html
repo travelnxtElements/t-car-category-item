@@ -7,13 +7,13 @@
             display: block;
         }
         </style>
-        <t-image></t-image>
+        <t-image src=[[url]]></t-image>
         <div>{{category}}</div>
         <div>{{_priceText}}</div>
         <div>{{capacityRange}}</div>
         <div>{{baggageRange}}</div>
         <div>{{transmission}}</div>
-        <div>{{doorsRange}}</div>
+        <div>{{doorRange}}</div>
         <div>{{airConditioning}}</div>
     </template>
     <script>
@@ -33,7 +33,7 @@
             price: {
                 type: Number,
                 value: 0,
-                observer: '_priceChanged'
+                observer:'_priceChanged'
             },
             _priceText: {
                 type: String,
@@ -52,39 +52,25 @@
                 value: '',
             },
             transmission: {
-                type: Boolean,
-                value: true,
+                type: String,
+                value: '',
             },
-            doorsRange: {
+            doorRange: {
                 type: Number,
                 value: '',
             },
             airConditioning: {
-                type: Boolean,
-                value: false
+                type: String,
+                value: ''
             },
             rentDuration: {
                 type: Number,
                 value: 1
-            },
-            _model: {
-                type: Object,
-                value: null,
-                observer: '_modelChanged'
             }
-        },
-
-        _modelChanged: function() {
-            if (!this._model) {
-                return;
-            }
-
-            this.url = this._model.heroImageUrl;
-            this.doorsRange
         },
 
         _priceChanged: function() {
-            this._priceText = this.currency + ' ' + (this.price / this.rentDuration) + 'PER DAY';
+            this._priceText = this.currency + ' ' + this.price + ' PER DAY';
         }
 
     });

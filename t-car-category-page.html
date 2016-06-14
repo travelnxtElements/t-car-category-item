@@ -1,7 +1,7 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../t-ajax/t-ajax.html">
 <link rel="import" href="../t-list/t-list.html">
 <link rel="import" href="t-car-category-api.html">
+<link rel="import" href="t-car-category-item.html">
 <link rel="import" href="t-filter-api.html">
 <link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
 <link rel="import" href="../t-notify/t-notify.html">
@@ -47,8 +47,8 @@ Example:
             api-base-url="[[apiBaseUrl]]"
             api-relative-url="api/car/filter/[[searchId]]"
             auth-token="[[authToken]]"
-            on-t-car-category-api-success="onFilterSuccess"
-            on-t-car-category-api-error="onFilterError">
+            on-t-filter-api-success="onFilterSuccess"
+            on-t-filter-api-error="onFilterError">
         </t-filter-api>
 
         <t-sessionstorage
@@ -59,6 +59,20 @@ Example:
         </t-sessionstorage>
 
         <h1>category result page</h1>
+
+        <template id="list" is="dom-repeat" items="{{list}}">
+            <t-car-category-item 
+                category= "{{item.category}}"
+                url= "{{item.url}}"
+                price= "{{item.price}}"
+                capacity-range= "{{item.capacityRange}}"
+                baggage-range= "{{item.baggageRange}}"
+                transmission= "{{item.transmission}}"
+                door-range= "{{item.doorRange}}"
+                airconditioning= "{{item.airconditioning}}">
+            </t-car-category-item>
+        </template>
+
     </template>
     <script>
     (function() {
@@ -66,6 +80,19 @@ Example:
         var categoryResult = [];
         var filterResult = [];
         var searchCriteria = null;
+
+        var numberMapping = {
+            'One': 1,
+            'Two': 2,
+            'Three': 3,
+            'Four': 4,
+            'Five': 5,
+            'Six': 6,
+            'Seven': 7,
+            'Eight': 8,
+            'Nine': 9,
+            'Ten': 10
+        };
 
         Polymer({
             is: 't-car-category-page',
@@ -315,16 +342,20 @@ Example:
 
             _processResultData: function () {
 
-                if (!categoryResult || !filterResult || !searchCriteria) {
+                // if (!categoryResult || !filterResult || !searchCriteria) {
+                if (!categoryResult.length || !filterResult.length) {
                     return;
                 }
 
                 var categoryFilter = this._getCategoryFilter();
+
+                console.log(this.list);
+                this.$.list.render();
             },
 
             _getCategoryFilter: function () {
 
-                if (!filterResult || !!filterResult.length) {
+                if (!filterResult || !filterResult.length) {
                     return [];
                 }
                 var categoryFilter = filterResult.find(function (item, index, array) {
@@ -343,13 +374,15 @@ Example:
                 }, this);
 
                 if (perCategoryResult && perCategoryResult.length) {
-                    this._buildCategoryListItem();
+                    this._buildCategoryListItem(perCategoryResult, categoryName, minPrice);
                 }
             },
 
             _buildCategoryListItem: function (perCategoryResult, categoryName, minPrice) {
 
-                var doorList, baggageList, capacityList = [];
+                var doorList = [];
+                var baggageList = [];
+                var capacityList = [];
                 var url = perCategoryResult[0].heroImageUrl;
 
                 for (var i = 0; i < perCategoryResult.length; i++) {
@@ -357,7 +390,55 @@ Example:
                     baggageList.push(perCategoryResult[i].baggage);
                     capacityList.push(perCategoryResult[i].capacity);
                 }
-                
+
+                doorList = this._parseCount(this._getUniqueItems(doorList));
+                baggageList = this._getUniqueItems(baggageList);
+                capacityList = this._parseCount(this._convertCapacity(this._getUniqueItems(capacityList)));
+
+                var doorRange = Math.min.apply(null, doorList) + '-' + Math.max.apply(null, doorList);
+                var baggageRange = Math.min.apply(null, baggageList) + '-' + Math.max.apply(null, baggageList);
+                var capacityRange = Math.min.apply(null, capacityList) + '-' + Math.max.apply(null, capacityList);
+
+                this.list.push({
+                    category: categoryName,
+                    doorRange: doorRange,
+                    baggageRange: baggageRange,
+                    capacityRange: capacityRange,
+                    url: url,
+                    price: minPrice,
+                    transmission: 'Auto',
+                    airconditioning: 'Yes'
+                });
+            },
+
+            _convertCapacity: function (capacityList) {
+                var list = [];
+                for (var i = 0; i < capacityList.length; i++) {
+                    if (capacityList[i].indexOf('To') > -1) {
+                        var splitCapacity = capacityList[i].split('To');
+                        list.push(splitCapacity[0],splitCapacity[1]);
+                    }                
+                }
+                return this._getUniqueItems(list);
+            },
+
+            _parseCount: function (array) {
+                for (var i = 0; i < array.length; i++) {
+                    array[i] = numberMapping[array[i]];
+                }
+                return array;
+            },
+
+            _getUniqueItems: function (array) {
+                var u = {}, a = [];
+                for(var i = 0, l = array.length; i < l; ++i){
+                   if(u.hasOwnProperty(array[i])) {
+                     continue;
+                   }
+                   a.push(array[i]);
+                   u[array[i]] = 1;
+                }
+                return a;
             }
         });
     })();
