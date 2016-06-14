@@ -1,0 +1,365 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../t-ajax/t-ajax.html">
+<link rel="import" href="../t-list/t-list.html">
+<link rel="import" href="t-car-category-api.html">
+<link rel="import" href="t-filter-api.html">
+<link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
+<link rel="import" href="../t-notify/t-notify.html">
+<!--
+A comment describing this element
+
+Example:
+
+    <my-elem></my-elem>
+
+Example:
+
+    <my-elem>
+      <h2>Hello my-elem</h2>
+    </my-elem>
+
+@demo demo/index.html
+-->
+<dom-module id="t-car-category-page">
+    <template>
+        <style>
+        :host {
+            display: block;
+        }
+        </style>
+
+        <t-notify id="notify"></t-notify>
+
+		<t-car-category-api
+            id="resultApi"
+            loading={{loading}}
+            api-base-url="{{apiBaseUrl}}"
+            api-relative-url="api/Car/results/[[searchId]]"
+            auth-token="[[authToken]]"
+            query-params=[[_queryParams]]
+            on-t-car-category-api-success="onResultSuccess"
+            on-t-car-category-api-error="onResultError">
+        </t-car-category-api>
+
+		<t-filter-api
+            id="filterApi"
+            loading={{loading}}
+            api-base-url="[[apiBaseUrl]]"
+            api-relative-url="api/car/filter/[[searchId]]"
+            auth-token="[[authToken]]"
+            on-t-car-category-api-success="onFilterSuccess"
+            on-t-car-category-api-error="onFilterError">
+        </t-filter-api>
+
+        <t-sessionstorage
+            id="sessionStore"
+            api-url-format="{{apiUrlFormat}}"
+            on-t-sessionstorage-save-success="onSessionSave"
+            on-t-sessionstorage-load-success="onSessionLoad">
+        </t-sessionstorage>
+
+        <h1>category result page</h1>
+    </template>
+    <script>
+    (function() {
+
+        var categoryResult = [];
+        var filterResult = [];
+        var searchCriteria = null;
+
+        Polymer({
+            is: 't-car-category-page',
+
+            properties: {
+
+                /*
+                 * <p>This string is query string containing token value</p>
+                */
+                authToken: {
+                    type: String,
+                    value: ''
+                },
+
+                /*
+                 * <p>This property holds the value of api base URL</p>
+                */
+                apiBaseUrl: {
+                    type: String,
+                    value: ''
+                },
+
+                /*
+                 * <p>Key values to be set in api url query string</p>
+                */
+                _queryParams: {
+                    type: Array,
+                    value: function () {
+                    	return [{
+                    		'$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
+                    	}];
+                    }
+                },
+
+                /*
+                 * <p>This property holds the value of web api URL format</p>
+                */
+                apiUrlFormat: {
+                    type: String,
+                    value: ''
+                },
+
+                /*
+                 * <p>This property holds the value of currency</p>
+                */
+                currency: {
+                    type: String,
+                    value: ''
+                },
+
+                /*
+                 * <p>This property holds the value of search id</p>
+                */
+                searchId: {
+                    type: String,
+                    value: ''
+                },
+
+                list: {
+                    type: Array,
+                    value:[]
+                },
+
+                /*
+                 * <p>This property is collection of keys used to store data in session</p>
+                */
+                _sessionKeys: {
+                    type: Object,
+                    value: function() {
+                        return {
+                            categoryResult : 'CAR_CATEGORY_RESULT',
+                            filterResult:'CAR_FILTER_RESULT',
+                            searchCriteria : 'CAR_SEARCH_CRITERIA',
+                            searchId:'CAR_SEARCH_ID'
+                        };
+                    },
+                    readOnly: true
+                }
+            },
+
+
+            attached: function () {
+            	
+            	if (!this.authToken) {
+            		return;
+            	}
+
+                if (!searchCriteria) {
+                   this._getFromSessionStore(this._sessionKeys.searchCriteria);
+                }
+
+            	if (!this.searchId) {
+             	   this._getFromSessionStore(this._sessionKeys.searchId);
+            	} else {
+                    this.$.resultApi.search();
+                    this.$.filterApi.getFilters();
+                }
+            },
+
+            /*
+             * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
+            */
+            onResultSuccess: function (e) {
+
+                if (!e.detail) {
+                    this.$.notify.active = true;
+                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                    console.error('something blew up!');
+                    return;
+                }
+                categoryResult = e.detail.inventories;
+                this._saveInSessionStore(this._sessionKeys.categoryResult, e.detail.inventories);
+            },
+
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
+            onResultError: function (e) {
+                this.$.notify.active = true;
+                this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                console.error(e.detail);
+                this.fire('t-car-search-error', e.detail);
+            },
+
+            onFilterSuccess: function (e) {
+
+                if (!e.detail) {
+                    this.$.notify.active = true;
+                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                    console.error('something blew up!');
+                    return;
+                }
+
+                filterResult = e.detail.filters;
+                this._saveInSessionStore(this._sessionKeys.filterResult, e.detail.filters);
+            },
+
+            onFilterError: function (e) {            	
+            },
+
+            /*
+             * <p>Event handler method called when `t-sessionstorage-save-success` event is fired</p>
+            */
+            onSessionSave: function (e) {
+
+            	switch(this.$.sessionStore.key) {
+
+    				case this._sessionKeys.categoryResult:                        
+                        this._processResultData()
+        				break;
+
+				    case this._sessionKeys.filterResult:
+				    	this._processResultData();
+				        break;
+
+				    case this._sessionKeys.searchCriteria:
+				        break;
+
+				    case this._sessionKeys.searchId:
+				        break;
+
+				    default:
+				    	console.error(this.$.sessionStore.key, ' is invalid');
+				    	break;
+		    	}
+            },
+
+            /*
+             * <p>Event handler method called when `t-sessionstorage-load-success` event is fired</p>
+            */
+            onSessionLoad: function (e) {
+
+            	switch(this.$.sessionStore.key) {
+
+    				case this._sessionKeys.categoryResult:
+        				break;
+
+				    case this._sessionKeys.filterResult:
+				        break;
+
+				    case this._sessionKeys.searchCriteria:
+                        searchCriteria = this.$.sessionStore.value;
+				    	this._processResultData();
+				        break;
+
+				    case this._sessionKeys.searchId:
+				    	this._setSearchId();
+				        break;
+
+				    default:
+				    	console.error(this.$.sessionStore.key, ' is invalid');
+				    	break;
+		    	}
+            },
+
+            /*
+             * <p>This method resets the view by using saved data in session</p>
+             * <p>It calles child views' resetView method to propogate the reset event</p>
+            */
+            resetView:function () {
+            	
+            },
+
+            _processCategoryResult: function () {
+            	console.log(this.$.sessionStore.value);
+            },
+
+            /*
+             * <p>This is page component level method to get data from session</p>
+             * <p>This should be moved in page component behaviour</p>
+            */
+            _getFromSessionStore: function (key) {
+
+                if (!key) {
+                    return;
+                }
+
+                this.$.sessionStore.key = key;
+
+                return this.$.sessionStore.load();
+            },
+
+            _setSearchId :function () {
+                this.searchId = this.$.sessionStore.value;
+                this.$.resultApi.search();
+                this.$.filterApi.getFilters();
+            },
+
+            /*
+             * <p>This page component level method to save data in session</p>
+             * <p>This should be moved in page component behaviour</p>
+            */
+            _saveInSessionStore: function (key, value) {
+
+                if (!key || !value) {
+                    return;
+                }
+
+                this.$.sessionStore.key = key;
+                this.$.sessionStore.value = value;
+
+                this.$.sessionStore.save();
+            },
+
+            _onAuthTokenUpdate: function () {
+            },
+
+            _processResultData: function () {
+
+                if (!categoryResult || !filterResult || !searchCriteria) {
+                    return;
+                }
+
+                var categoryFilter = this._getCategoryFilter();
+            },
+
+            _getCategoryFilter: function () {
+
+                if (!filterResult || !!filterResult.length) {
+                    return [];
+                }
+                var categoryFilter = filterResult.find(function (item, index, array) {
+                    return item.category === 'Category';
+                });
+
+                for (var i = 0; i < categoryFilter.items.length; i++) {
+                    this._groupCategoryItems(categoryFilter.items[i].name, categoryFilter.items[i].value)
+                }
+            },
+
+            _groupCategoryItems: function (categoryName, minPrice) {
+
+                var perCategoryResult = categoryResult.filter(function (item, index, array) {
+                    return item.category.toLowerCase() === categoryName.toLowerCase();
+                }, this);
+
+                if (perCategoryResult && perCategoryResult.length) {
+                    this._buildCategoryListItem();
+                }
+            },
+
+            _buildCategoryListItem: function (perCategoryResult, categoryName, minPrice) {
+
+                var doorList, baggageList, capacityList = [];
+                var url = perCategoryResult[0].heroImageUrl;
+
+                for (var i = 0; i < perCategoryResult.length; i++) {
+                    doorList.push(perCategoryResult[i].doors);
+                    baggageList.push(perCategoryResult[i].baggage);
+                    capacityList.push(perCategoryResult[i].capacity);
+                }
+                
+            }
+        });
+    })();
+    </script>
+</dom-module>
