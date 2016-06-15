@@ -4,7 +4,7 @@
 <!--
     <h3>Details:</h3>
 
-        `t-car-category-api` is a car search api component integrated with mystique apis.
+        `t-car-result-api` is a car search api component integrated with mystique apis.
 
         It fires mystique search call and returns `searchId` upon successful opearion
 
@@ -42,24 +42,24 @@
 
         following events are fired by this component
 
-            1. 't-car-category-api-success' - fired upon successful search call
-            2. 't-car-category-api-error' - fired if search call is failed
+            1. 't-car-result-api-success' - fired upon successful search call
+            2. 't-car-result-api-error' - fired if search call is failed
 
     <h3>Example:</h3>
 
-        <t-car-category-api 
+        <t-car-result-api 
             id="searchApi" 
             loading={{loading}} 
             api-base-url="{{apiBaseUrl}}" 
             api-relative-url="api/Car/search" 
             auth-token="{{authToken}}"
-            on-t-car-category-api-success="onSearchSuccess"
-            on-t-car-category-api-error="onSearchError">
-        </t-car-category-api>
+            on-t-car-result-api-success="onSearchSuccess"
+            on-t-car-result-api-error="onSearchError">
+        </t-car-result-api>
 
     @demo demo/index.html
 -->
-<dom-module id="t-car-category-api">
+<dom-module id="t-car-result-api">
     <template>
         <iron-ajax id="ajaxCall" method="GET" content-type="application/json" handle-as="json" verbose>
         </iron-ajax>
@@ -69,7 +69,7 @@
 (function() {
 
         Polymer({
-        is: 't-car-category-api',
+        is: 't-car-result-api',
 
         properties: {
 

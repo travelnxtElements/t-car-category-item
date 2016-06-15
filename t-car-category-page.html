@@ -1,6 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../t-list/t-list.html">
-<link rel="import" href="t-car-category-api.html">
+<link rel="import" href="../t-shared-lib/t-date-behavior.html">
+<link rel="import" href="t-car-result-api.html">
 <link rel="import" href="t-car-category-item.html">
 <link rel="import" href="t-filter-api.html">
 <link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
@@ -30,16 +30,15 @@ Example:
 
         <t-notify id="notify"></t-notify>
 
-		<t-car-category-api
+		<t-car-result-api
             id="resultApi"
             loading={{loading}}
             api-base-url="{{apiBaseUrl}}"
             api-relative-url="api/Car/results/[[searchId]]"
             auth-token="[[authToken]]"
-            query-params=[[_queryParams]]
-            on-t-car-category-api-success="onResultSuccess"
-            on-t-car-category-api-error="onResultError">
-        </t-car-category-api>
+            on-t-car-result-api-success="onResultSuccess"
+            on-t-car-result-api-error="onResultError">
+        </t-car-result-api>
 
 		<t-filter-api
             id="filterApi"
@@ -61,15 +60,16 @@ Example:
         <h1>category result page</h1>
 
         <template id="list" is="dom-repeat" items="{{list}}">
-            <t-car-category-item 
+            <t-car-category-item
                 category= "{{item.category}}"
-                url= "{{item.url}}"
-                price= "{{item.price}}"
-                capacity-range= "{{item.capacityRange}}"
-                baggage-range= "{{item.baggageRange}}"
-                transmission= "{{item.transmission}}"
-                door-range= "{{item.doorRange}}"
-                airconditioning= "{{item.airconditioning}}">
+                url="{{item.url}}"
+                price="{{item.price}}"
+                currency="{{currency}}"
+                capacity-range="{{item.capacityRange}}"
+                baggage-range="{{item.baggageRange}}"
+                transmission="{{item.transmission}}"
+                door-range="{{item.doorRange}}"
+                air-conditioning="{{item.airconditioning}}">
             </t-car-category-item>
         </template>
 
@@ -80,6 +80,7 @@ Example:
         var categoryResult = [];
         var filterResult = [];
         var searchCriteria = null;
+        var listSummary = [];
 
         var numberMapping = {
             'One': 1,
@@ -96,6 +97,8 @@ Example:
 
         Polymer({
             is: 't-car-category-page',
+
+            behaviors: [TravelNxt.Behaviors.DateBehavior],
 
             properties: {
 
@@ -116,18 +119,6 @@ Example:
                 },
 
                 /*
-                 * <p>Key values to be set in api url query string</p>
-                */
-                _queryParams: {
-                    type: Array,
-                    value: function () {
-                    	return [{
-                    		'$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
-                    	}];
-                    }
-                },
-
-                /*
                  * <p>This property holds the value of web api URL format</p>
                 */
                 apiUrlFormat: {
@@ -140,7 +131,7 @@ Example:
                 */
                 currency: {
                     type: String,
-                    value: ''
+                    value: 'USD'
                 },
 
                 /*
@@ -148,12 +139,14 @@ Example:
                 */
                 searchId: {
                     type: String,
-                    value: ''
+                    value: '',
+                    observer:'_onSearchIdUpdate'
                 },
 
                 list: {
                     type: Array,
-                    value:[]
+                    value:[],
+                    observer:'_renderList'
                 },
 
                 /*
@@ -173,7 +166,6 @@ Example:
                 }
             },
 
-
             attached: function () {
             	
             	if (!this.authToken) {
@@ -186,10 +178,7 @@ Example:
 
             	if (!this.searchId) {
              	   this._getFromSessionStore(this._sessionKeys.searchId);
-            	} else {
-                    this.$.resultApi.search();
-                    this.$.filterApi.getFilters();
-                }
+            	}
             },
 
             /*
@@ -217,6 +206,9 @@ Example:
                 this.fire('t-car-search-error', e.detail);
             },
 
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
             onFilterSuccess: function (e) {
 
                 if (!e.detail) {
@@ -230,6 +222,9 @@ Example:
                 this._saveInSessionStore(this._sessionKeys.filterResult, e.detail.filters);
             },
 
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
             onFilterError: function (e) {            	
             },
 
@@ -279,7 +274,7 @@ Example:
 				        break;
 
 				    case this._sessionKeys.searchId:
-				    	this._setSearchId();
+                        this.searchId = this.$.sessionStore.value;
 				        break;
 
 				    default:
@@ -292,12 +287,30 @@ Example:
              * <p>This method resets the view by using saved data in session</p>
              * <p>It calles child views' resetView method to propogate the reset event</p>
             */
-            resetView:function () {
+            resetView: function () {
             	
             },
 
-            _processCategoryResult: function () {
-            	console.log(this.$.sessionStore.value);
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
+            _renderList: function () {
+                if (this.list && this.list.length) {
+                    this.$.list.render();
+                }
+            },
+
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
+            _onSearchIdUpdate :function () {
+                if (this.searchId) {
+                    this.$.resultApi.queryParams = [{
+                        '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
+                    }];
+                    this.$.resultApi.search();
+                    this.$.filterApi.getFilters();
+                }
             },
 
             /*
@@ -313,12 +326,6 @@ Example:
                 this.$.sessionStore.key = key;
 
                 return this.$.sessionStore.load();
-            },
-
-            _setSearchId :function () {
-                this.searchId = this.$.sessionStore.value;
-                this.$.resultApi.search();
-                this.$.filterApi.getFilters();
             },
 
             /*
@@ -337,23 +344,26 @@ Example:
                 this.$.sessionStore.save();
             },
 
-            _onAuthTokenUpdate: function () {
-            },
-
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
             _processResultData: function () {
 
-                // if (!categoryResult || !filterResult || !searchCriteria) {
-                if (!categoryResult.length || !filterResult.length) {
+                if (!categoryResult.length || !filterResult.length || !searchCriteria) {
+                // if (!categoryResult.length || !filterResult.length) {
                     return;
                 }
 
-                var categoryFilter = this._getCategoryFilter();
-
-                console.log(this.list);
-                this.$.list.render();
+                this._translateCategoryResult();
+                this.list = listSummary;
             },
 
-            _getCategoryFilter: function () {
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
+            _translateCategoryResult: function () {
+
+                var x = searchCriteria;
 
                 if (!filterResult || !filterResult.length) {
                     return [];
@@ -363,27 +373,43 @@ Example:
                 });
 
                 for (var i = 0; i < categoryFilter.items.length; i++) {
-                    this._groupCategoryItems(categoryFilter.items[i].name, categoryFilter.items[i].value)
+                    this._groupCategoryItems(categoryFilter.items[i].name, this._getAvgPrice(categoryFilter.items[i].value))
                 }
             },
 
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
+            _getAvgPrice: function (price) {
+                price = price / this._dateDiff(searchCriteria.pickupDate.date, searchCriteria.dropoffDate.date);
+                return (price * 100)/100;
+            },
+
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
             _groupCategoryItems: function (categoryName, minPrice) {
 
                 var perCategoryResult = categoryResult.filter(function (item, index, array) {
-                    return item.category.toLowerCase() === categoryName.toLowerCase();
+                    return item.category.toLowerCase() === categoryName.toLowerCase() ||
+                           item.category.toLowerCase() === 'notspecified';
                 }, this);
 
                 if (perCategoryResult && perCategoryResult.length) {
-                    this._buildCategoryListItem(perCategoryResult, categoryName, minPrice);
+                    this._buildCategoryListItem(perCategoryResult, minPrice);
                 }
             },
 
-            _buildCategoryListItem: function (perCategoryResult, categoryName, minPrice) {
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
+            _buildCategoryListItem: function (perCategoryResult, minPrice) {
 
                 var doorList = [];
                 var baggageList = [];
                 var capacityList = [];
                 var url = perCategoryResult[0].heroImageUrl;
+                var categoryName = perCategoryResult[0].category;
 
                 for (var i = 0; i < perCategoryResult.length; i++) {
                     doorList.push(perCategoryResult[i].doors);
@@ -395,11 +421,11 @@ Example:
                 baggageList = this._getUniqueItems(baggageList);
                 capacityList = this._parseCount(this._convertCapacity(this._getUniqueItems(capacityList)));
 
-                var doorRange = Math.min.apply(null, doorList) + '-' + Math.max.apply(null, doorList);
-                var baggageRange = Math.min.apply(null, baggageList) + '-' + Math.max.apply(null, baggageList);
-                var capacityRange = Math.min.apply(null, capacityList) + '-' + Math.max.apply(null, capacityList);
+                var doorRange = this._getFeaureRange(doorList);
+                var baggageRange = this._getFeaureRange(baggageList);
+                var capacityRange = this._getFeaureRange(capacityList);
 
-                this.list.push({
+                listSummary.push({
                     category: categoryName,
                     doorRange: doorRange,
                     baggageRange: baggageRange,
@@ -411,6 +437,22 @@ Example:
                 });
             },
 
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
+            _getFeaureRange: function (feature) {
+                var minValue = Math.min.apply(null, feature);
+                var maxValue = Math.max.apply(null, feature);
+                if (minValue === maxValue) {
+                    return minValue;
+                }else{
+                    return minValue + ' - ' + maxValue;
+                }
+            },
+
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
             _convertCapacity: function (capacityList) {
                 var list = [];
                 for (var i = 0; i < capacityList.length; i++) {
@@ -422,6 +464,9 @@ Example:
                 return this._getUniqueItems(list);
             },
 
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
             _parseCount: function (array) {
                 for (var i = 0; i < array.length; i++) {
                     array[i] = numberMapping[array[i]];
@@ -429,6 +474,9 @@ Example:
                 return array;
             },
 
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
             _getUniqueItems: function (array) {
                 var u = {}, a = [];
                 for(var i = 0, l = array.length; i < l; ++i){
