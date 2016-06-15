@@ -67,9 +67,10 @@ Example:
                 currency="{{currency}}"
                 capacity-range="{{item.capacityRange}}"
                 baggage-range="{{item.baggageRange}}"
-                transmission="{{item.transmission}}"
+                is-automatic="{{item.isAutomatic}}"
+                is-manual="{{item.isManual}}"
                 door-range="{{item.doorRange}}"
-                air-conditioning="{{item.airconditioning}}">
+                air-conditioning="{{item.airConditioning}}">
             </t-car-category-item>
         </template>
 
@@ -363,8 +364,6 @@ Example:
             */
             _translateCategoryResult: function () {
 
-                var x = searchCriteria;
-
                 if (!filterResult || !filterResult.length) {
                     return [];
                 }
@@ -372,17 +371,23 @@ Example:
                     return item.category === 'Category';
                 });
 
+                var noOfDays = this._dateDiff(searchCriteria.pickupDate.date, searchCriteria.dropoffDate.date);
+                var noOfHours = this._getTimeDiff(searchCriteria.pickupDate.time, searchCriteria.dropoffDate.time);
+
                 for (var i = 0; i < categoryFilter.items.length; i++) {
-                    this._groupCategoryItems(categoryFilter.items[i].name, this._getAvgPrice(categoryFilter.items[i].value))
+                    this._groupCategoryItems(categoryFilter.items[i].name, this._getAvgPrice(categoryFilter.items[i].value, noOfDays, noOfHours));
                 }
             },
 
             /*
              * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
             */
-            _getAvgPrice: function (price) {
-                price = price / this._dateDiff(searchCriteria.pickupDate.date, searchCriteria.dropoffDate.date);
-                return (price * 100)/100;
+            _getAvgPrice: function (price, noOfDays, noOfHours) {
+                if (noOfHours > 0) {                 
+                    noOfDays +=1 ;
+                }
+                price = price / noOfDays;
+                return Math.ceil(price);
             },
 
             /*
@@ -410,11 +415,17 @@ Example:
                 var capacityList = [];
                 var url = perCategoryResult[0].heroImageUrl;
                 var categoryName = perCategoryResult[0].category;
+                var isAutomatic = false;
+                var isManual = false;
+                var airConditioning = false;
 
                 for (var i = 0; i < perCategoryResult.length; i++) {
                     doorList.push(perCategoryResult[i].doors);
                     baggageList.push(perCategoryResult[i].baggage);
                     capacityList.push(perCategoryResult[i].capacity);
+                    isAutomatic = isAutomatic || perCategoryResult[i].transmission.toLowerCase() === 'automatic';
+                    isManual = isManual || perCategoryResult[i].transmission.toLowerCase() === 'manual';
+                    airConditioning = airConditioning || perCategoryResult[i].airConditioning.toLowerCase() === 'yes';
                 }
 
                 doorList = this._parseCount(this._getUniqueItems(doorList));
@@ -432,8 +443,9 @@ Example:
                     capacityRange: capacityRange,
                     url: url,
                     price: minPrice,
-                    transmission: 'Auto',
-                    airconditioning: 'Yes'
+                    airConditioning: airConditioning,
+                    isAutomatic : isAutomatic,
+                    isManual : isManual
                 });
             },
 

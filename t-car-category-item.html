@@ -28,7 +28,8 @@
         <div><b>Price - </b> {{_priceText}}</div>
         <div><b>Capacity - </b>{{capacityRange}}</div>
         <div><b>Baggage - </b> {{baggageRange}}</div>
-        <div><b>Transmission - </b> {{transmission}}</div>
+        <div><b>Is Automatic - </b> {{isAutomatic}}</div>
+        <div><b>Is Manual - </b> {{isManual}}</div>
         <div><b>Doors - </b>{{doorRange}}</div>
         <div><b>Air Conditioning - </b>{{airConditioning}}</div>
     </template>
@@ -62,9 +63,13 @@
                 type: String,
                 value: '',
             },
-            transmission: {
-                type: String,
-                value: '',
+            isAutoMatic: {
+                type: Boolean,
+                value: false,
+            },
+            isManual: {
+                type: Boolean,
+                value: false,
             },
             doorRange: {
                 type: Number,
