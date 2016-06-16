@@ -72,263 +72,206 @@ Example:
                 air-conditioning="{{item.airConditioning}}">
             </t-car-category-item>
         </template>
-
     </template>
     <script>
-    (function() {
+        (function() {
 
-        Polymer({
-            is: 't-car-category-page',
+            Polymer({
+                is: 't-car-category-page',
 
-            behaviors: [
-                TravelNxt.Behaviors.DateBehavior,
-                TravelNxt.Behaviors.CategoryResultBehavior
-            ],
+                behaviors: [
+                    TravelNxt.Behaviors.DateBehavior,
+                    TravelNxt.Behaviors.CategoryResultBehavior
+                ],
 
-            properties: {
+                observers: [
+                    '_processResultData(_categoryResult, _filterResult, _searchCriteria)'
+                ],
 
-                /*
-                 * <p>This string is query string containing token value</p>
-                */
-                authToken: {
-                    type: String,
-                    value: ''
-                },
+                properties: {
 
-                /*
-                 * <p>This property holds the value of api base URL</p>
-                */
-                apiBaseUrl: {
-                    type: String,
-                    value: ''
-                },
-
-                /*
-                 * <p>This property holds the value of web api URL format</p>
-                */
-                apiUrlFormat: {
-                    type: String,
-                    value: ''
-                },
-
-                /*
-                 * <p>This property holds the value of currency</p>
-                */
-                currency: {
-                    type: String,
-                    value: 'USD'
-                },
-
-                /*
-                 * <p>This property holds the value of search id</p>
-                */
-                searchId: {
-                    type: String,
-                    value: '',
-                    observer:'_onSearchIdUpdate'
-                },
-
-                list: {
-                    type: Array,
-                    value:[],
-                    observer:'_renderList'
-                },
-
-                /*
-                 * <p>This property is collection of keys used to store data in session</p>
-                */
-                _sessionKeys: {
-                    type: Object,
-                    value: function() {
-                        return {
-                            categoryResult : 'CAR_CATEGORY_RESULT',
-                            filterResult:'CAR_FILTER_RESULT',
-                            searchCriteria : 'CAR_SEARCH_CRITERIA',
-                            searchId:'CAR_SEARCH_ID'
-                        };
+                    /*
+                     * <p>This string is query string containing token value</p>
+                    */
+                    authToken: {
+                        type: String,
+                        value: ''
                     },
-                    readOnly: true
-                }
-            },
 
-            attached: function () {
-            	
-            	if (!this.authToken) {
-            		return;
-            	}
+                    /*
+                     * <p>This property holds the value of api base URL</p>
+                    */
+                    apiBaseUrl: {
+                        type: String,
+                        value: ''
+                    },
 
-                if (!this._searchCriteria) {
-                   this._getFromSessionStore(this._sessionKeys.searchCriteria);
-                }
+                    /*
+                     * <p>This property holds the value of web api URL format</p>
+                    */
+                    apiUrlFormat: {
+                        type: String,
+                        value: ''
+                    },
 
-            	if (!this.searchId) {
-             	   this._getFromSessionStore(this._sessionKeys.searchId);
-            	}
-            },
+                    /*
+                     * <p>This property holds the value of currency</p>
+                    */
+                    currency: {
+                        type: String,
+                        value: 'USD'
+                    },
 
-            /*
-             * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
-            */
-            onResultSuccess: function (e) {
+                    /*
+                     * <p>This property holds the value of search id</p>
+                    */
+                    searchId: {
+                        type: String,
+                        value: '',
+                        observer:'_onSearchIdUpdate'
+                    },
 
-                if (!e.detail) {
+                    list: {
+                        type: Array,
+                        value:[],
+                        observer:'_renderList'
+                    },
+
+                    /*
+                     * <p>This property is collection of keys used to store data in session</p>
+                    */
+                    _sessionKeys: {
+                        type: Object,
+                        value: function() {
+                            return {
+                                searchCriteria : 'CAR_SEARCH_CRITERIA',
+                                searchId:'CAR_SEARCH_ID'
+                            };
+                        },
+                        readOnly: true
+                    }
+                },
+
+                attached: function () {
+                	
+                	if (!this.authToken) {
+                		return;
+                	}
+
+                    if (!this._searchCriteria) {
+                       this._getFromSessionStore(this._sessionKeys.searchCriteria);
+                    }
+
+                	if (!this.searchId) {
+                 	   this._getFromSessionStore(this._sessionKeys.searchId);
+                	}
+                },
+
+                /*
+                 * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
+                */
+                onResultSuccess: function (e) {
+
+                    if (!e.detail) {
+                        this.$.notify.active = true;
+                        this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                        console.error('something blew up!');
+                        return;
+                    }
+                    this._categoryResult = e.detail.inventories;
+                },
+
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                */
+                onResultError: function (e) {
                     this.$.notify.active = true;
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                    console.error('something blew up!');
-                    return;
-                }
-                this._categoryResult = e.detail.inventories;
-                this._saveInSessionStore(this._sessionKeys.categoryResult, e.detail.inventories);
-            },
+                    console.error(e.detail);
+                    this.fire('t-car-search-error', e.detail);
+                },
 
-            /*
-             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-            */
-            onResultError: function (e) {
-                this.$.notify.active = true;
-                this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                console.error(e.detail);
-                this.fire('t-car-search-error', e.detail);
-            },
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                */
+                onFilterSuccess: function (e) {
 
-            /*
-             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-            */
-            onFilterSuccess: function (e) {
+                    if (!e.detail) {
+                        this.$.notify.active = true;
+                        this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                        console.error('something blew up!');
+                        return;
+                    }
 
-                if (!e.detail) {
-                    this.$.notify.active = true;
-                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                    console.error('something blew up!');
-                    return;
-                }
+                    this._filterResult = e.detail.filters;
+                },
 
-                this._filterResult = e.detail.filters;
-                this._saveInSessionStore(this._sessionKeys.filterResult, e.detail.filters);
-            },
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                */
+                onFilterError: function (e) {            	
+                },
 
-            /*
-             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-            */
-            onFilterError: function (e) {            	
-            },
+                /*
+                 * <p>Event handler method called when `t-sessionstorage-load-success` event is fired</p>
+                */
+                onSessionLoad: function (e) {
 
-            /*
-             * <p>Event handler method called when `t-sessionstorage-save-success` event is fired</p>
-            */
-            onSessionSave: function (e) {
+                	switch(this.$.sessionStore.key) {
 
-            	switch(this.$.sessionStore.key) {
+    				    case this._sessionKeys.searchCriteria:
+                            this._searchCriteria = this.$.sessionStore.value;
+    				        break;
 
-    				case this._sessionKeys.categoryResult:                        
-                        this._processResultData()
-        				break;
+    				    case this._sessionKeys.searchId:
+                            this.searchId = this.$.sessionStore.value;
+    				        break;
 
-				    case this._sessionKeys.filterResult:
-				    	this._processResultData();
-				        break;
+    				    default:
+    				    	console.error(this.$.sessionStore.key, ' is invalid');
+    				    	break;
+    		    	}
+                },
 
-				    case this._sessionKeys.searchCriteria:
-				        break;
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                */
+                _renderList: function () {
+                    if (this.list && this.list.length) {
+                        this.$.list.render();
+                    }
+                },
 
-				    case this._sessionKeys.searchId:
-				        break;
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                */
+                _onSearchIdUpdate :function () {
+                    if (!this.searchId) {
+                        return;
+                    }
 
-				    default:
-				    	console.error(this.$.sessionStore.key, ' is invalid');
-				    	break;
-		    	}
-            },
-
-            /*
-             * <p>Event handler method called when `t-sessionstorage-load-success` event is fired</p>
-            */
-            onSessionLoad: function (e) {
-
-            	switch(this.$.sessionStore.key) {
-
-    				case this._sessionKeys.categoryResult:
-        				break;
-
-				    case this._sessionKeys.filterResult:
-				        break;
-
-				    case this._sessionKeys.searchCriteria:
-                        this._searchCriteria = this.$.sessionStore.value;
-				    	this._processResultData();
-				        break;
-
-				    case this._sessionKeys.searchId:
-                        this.searchId = this.$.sessionStore.value;
-				        break;
-
-				    default:
-				    	console.error(this.$.sessionStore.key, ' is invalid');
-				    	break;
-		    	}
-            },
-
-            /*
-             * <p>This method resets the view by using saved data in session</p>
-             * <p>It calles child views' resetView method to propogate the reset event</p>
-            */
-            resetView: function () {
-            	
-            },
-
-            /*
-             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-            */
-            _renderList: function () {
-                if (this.list && this.list.length) {
-                    this.$.list.render();
-                }
-            },
-
-            /*
-             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-            */
-            _onSearchIdUpdate :function () {
-                if (this.searchId) {
                     this.$.resultApi.queryParams = [{
                         '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
                     }];
                     this.$.resultApi.search();
                     this.$.filterApi.getFilters();
+                },
+
+                /*
+                 * <p>This is page component level method to get data from session</p>
+                 * <p>This should be moved in page component behaviour</p>
+                */
+                _getFromSessionStore: function (key) {
+
+                    if (!key) {
+                        return;
+                    }
+
+                    this.$.sessionStore.key = key;
+
+                    return this.$.sessionStore.load();
                 }
-            },
-
-            /*
-             * <p>This is page component level method to get data from session</p>
-             * <p>This should be moved in page component behaviour</p>
-            */
-            _getFromSessionStore: function (key) {
-
-                if (!key) {
-                    return;
-                }
-
-                this.$.sessionStore.key = key;
-
-                return this.$.sessionStore.load();
-            },
-
-            /*
-             * <p>This page component level method to save data in session</p>
-             * <p>This should be moved in page component behaviour</p>
-            */
-            _saveInSessionStore: function (key, value) {
-
-                if (!key || !value) {
-                    return;
-                }
-
-                this.$.sessionStore.key = key;
-                this.$.sessionStore.value = value;
-
-                this.$.sessionStore.save();
-            }
-        });
-    })();
+            });
+        })();
     </script>
 </dom-module>
