@@ -92,8 +92,7 @@
         _groupCategoryItems: function(categoryName, minPrice) {
 
             var perCategoryResult = this._categoryResult.filter(function(item, index, array) {
-                return item.category.toLowerCase() === categoryName.toLowerCase() ||
-                    item.category.toLowerCase() === 'notspecified';
+                return item.category.toLowerCase() === categoryName.toLowerCase();
             }, this);
 
             if (perCategoryResult && perCategoryResult.length) {
