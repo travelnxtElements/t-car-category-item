@@ -175,10 +175,13 @@
          * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
          */
         _parseCount: function(array) {
+            var updatedArray = [];
             for (var i = 0; i < array.length; i++) {
-                array[i] = numberMapping[array[i]];
+                if (numberMapping[array[i]]) {
+                    updatedArray.push(numberMapping[array[i]]);
+                }
             }
-            return array;
+            return updatedArray;
         },
 
         /*
