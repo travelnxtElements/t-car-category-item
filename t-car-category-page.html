@@ -4,7 +4,6 @@
 <link rel="import" href="t-car-category-item.html">
 <link rel="import" href="t-filter-api.html">
 <link rel="import" href="t-category-result-behavior.html">
-<link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
 <link rel="import" href="../t-notify/t-notify.html">
 <!--
 A comment describing this element
@@ -31,7 +30,7 @@ Example:
 
         <t-notify id="notify"></t-notify>
 
-		<t-car-result-api
+        <t-car-result-api
             id="resultApi"
             loading={{loading}}
             api-base-url="{{apiBaseUrl}}"
@@ -41,7 +40,7 @@ Example:
             on-t-car-result-api-error="onResultError">
         </t-car-result-api>
 
-		<t-filter-api
+        <t-filter-api
             id="filterApi"
             loading={{loading}}
             api-base-url="[[apiBaseUrl]]"
@@ -50,13 +49,6 @@ Example:
             on-t-filter-api-success="onFilterSuccess"
             on-t-filter-api-error="onFilterError">
         </t-filter-api>
-
-        <t-sessionstorage
-            id="sessionStore"
-            api-url-format="{{apiUrlFormat}}"
-            on-t-sessionstorage-save-success="onSessionSave"
-            on-t-sessionstorage-load-success="onSessionLoad">
-        </t-sessionstorage>
 
         <template id="list" is="dom-repeat" items="{{list}}">
             <t-car-category-item
@@ -74,204 +66,135 @@ Example:
         </template>
     </template>
     <script>
-        (function() {
+(function() {
 
-            Polymer({
-                is: 't-car-category-page',
+    Polymer({
+        is: 't-car-category-page',
 
-                behaviors: [
-                    TravelNxt.Behaviors.DateBehavior,
-                    TravelNxt.Behaviors.CategoryResultBehavior
-                ],
+        behaviors: [
+            TravelNxt.Behaviors.DateBehavior,
+            TravelNxt.Behaviors.CategoryResultBehavior
+        ],
 
-                observers: [
-                    '_processResultData(_categoryResult, _filterResult, _searchCriteria)'
-                ],
+        properties: {
 
-                properties: {
+            /*
+             * <p>This string is query string containing token value</p>
+             */
+            authToken: String,
+               
+            /*
+             * <p>This property holds the value of api base URL</p>
+             */
+            apiBaseUrl: String,
+                
 
-                    /*
-                     * <p>This string is query string containing token value</p>
-                    */
-                    authToken: {
-                        type: String,
-                        value: ''
-                    },
+            /*
+             * <p>This property holds the value of web api URL format</p>
+             */
+            apiUrlFormat: String,
+               
 
-                    /*
-                     * <p>This property holds the value of api base URL</p>
-                    */
-                    apiBaseUrl: {
-                        type: String,
-                        value: ''
-                    },
+            /*
+             * <p>This property holds the value of currency</p>
+             */
+            currency: {
+                type: String,
+                value: 'USD'
+            },
 
-                    /*
-                     * <p>This property holds the value of web api URL format</p>
-                    */
-                    apiUrlFormat: {
-                        type: String,
-                        value: ''
-                    },
+            /*
+             * <p>This property holds the value of search id</p>
+             */
+            searchId: {
+                type: String,
+                value: '',
+                observer: '_onSearchIdUpdate'
+            },
 
-                    /*
-                     * <p>This property holds the value of currency</p>
-                    */
-                    currency: {
-                        type: String,
-                        value: 'USD'
-                    },
+            list: {
+                type: Array,
+                value: [],
+                observer: '_renderList'
+            }
+        },
 
-                    /*
-                     * <p>This property holds the value of search id</p>
-                    */
-                    searchId: {
-                        type: String,
-                        value: '',
-                        observer:'_onSearchIdUpdate'
-                    },
 
-                    list: {
-                        type: Array,
-                        value:[],
-                        observer:'_renderList'
-                    },
+        observers: [
+            '_processResultData(_categoryResult, _filterResult, searchCriteria)'
+        ],
+        
+        /*
+         * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
+         */
+        onResultSuccess: function(e) {
 
-                    /*
-                     * <p>This property is collection of keys used to store data in session</p>
-                    */
-                    _sessionKeys: {
-                        type: Object,
-                        value: function() {
-                            return {
-                                searchCriteria : 'CAR_SEARCH_CRITERIA',
-                                searchId:'CAR_SEARCH_ID'
-                            };
-                        },
-                        readOnly: true
-                    }
-                },
+            if (!e.detail) {
+                this.$.notify.active = true;
+                this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                console.error('something blew up!');
+                return;
+            }
+            this._categoryResult = e.detail.inventories;
+        },
 
-                attached: function () {
-                	
-                	if (!this.authToken) {
-                		return;
-                	}
+        /*
+         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         */
+        onResultError: function(e) {
+            this.$.notify.active = true;
+            this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+            console.error(e.detail);
+            this.fire('t-car-search-error', e.detail);
+        },
 
-                    if (!this._searchCriteria) {
-                       this._getFromSessionStore(this._sessionKeys.searchCriteria);
-                    }
+        /*
+         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         */
+        onFilterSuccess: function(e) {
 
-                	if (!this.searchId) {
-                 	   this._getFromSessionStore(this._sessionKeys.searchId);
-                	}
-                },
+            if (!e.detail) {
+                this.$.notify.active = true;
+                this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                console.error('something blew up!');
+                return;
+            }
 
-                /*
-                 * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
-                */
-                onResultSuccess: function (e) {
+            this._filterResult = e.detail.filters;
+        },
 
-                    if (!e.detail) {
-                        this.$.notify.active = true;
-                        this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                        console.error('something blew up!');
-                        return;
-                    }
-                    this._categoryResult = e.detail.inventories;
-                },
+        /*
+         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         */
+        onFilterError: function(e) {},
 
-                /*
-                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-                */
-                onResultError: function (e) {
-                    this.$.notify.active = true;
-                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                    console.error(e.detail);
-                    this.fire('t-car-search-error', e.detail);
-                },
+       
 
-                /*
-                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-                */
-                onFilterSuccess: function (e) {
+        /*
+         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         */
+        _renderList: function() {
+            if (this.list && this.list.length) {
+                this.$.list.render();
+            }
+        },
 
-                    if (!e.detail) {
-                        this.$.notify.active = true;
-                        this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                        console.error('something blew up!');
-                        return;
-                    }
+        /*
+         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         */
+        _onSearchIdUpdate: function() {
+            if (!this.searchId) {
+                return;
+            }
 
-                    this._filterResult = e.detail.filters;
-                },
+            this.$.resultApi.queryParams = [{
+                '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
+            }];
+            this.$.resultApi.search();
+            this.$.filterApi.getFilters();
+        }
+    });
+})();
+</script>
 
-                /*
-                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-                */
-                onFilterError: function (e) {            	
-                },
-
-                /*
-                 * <p>Event handler method called when `t-sessionstorage-load-success` event is fired</p>
-                */
-                onSessionLoad: function (e) {
-
-                	switch(this.$.sessionStore.key) {
-
-    				    case this._sessionKeys.searchCriteria:
-                            this._searchCriteria = this.$.sessionStore.value;
-    				        break;
-
-    				    case this._sessionKeys.searchId:
-                            this.searchId = this.$.sessionStore.value;
-    				        break;
-
-    				    default:
-    				    	console.error(this.$.sessionStore.key, ' is invalid');
-    				    	break;
-    		    	}
-                },
-
-                /*
-                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-                */
-                _renderList: function () {
-                    if (this.list && this.list.length) {
-                        this.$.list.render();
-                    }
-                },
-
-                /*
-                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-                */
-                _onSearchIdUpdate :function () {
-                    if (!this.searchId) {
-                        return;
-                    }
-
-                    this.$.resultApi.queryParams = [{
-                        '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
-                    }];
-                    this.$.resultApi.search();
-                    this.$.filterApi.getFilters();
-                },
-
-                /*
-                 * <p>This is page component level method to get data from session</p>
-                 * <p>This should be moved in page component behaviour</p>
-                */
-                _getFromSessionStore: function (key) {
-
-                    if (!key) {
-                        return;
-                    }
-
-                    this.$.sessionStore.key = key;
-
-                    return this.$.sessionStore.load();
-                }
-            });
-        })();
-    </script>
 </dom-module>

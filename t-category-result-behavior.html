@@ -34,7 +34,7 @@
                 value: []
             },
 
-            _searchCriteria: {
+            searchCriteria: {
                 type: Object,
                 value: null
             }
@@ -47,7 +47,7 @@
          */
         _processResultData: function() {
 
-            if (!this._categoryResult.length || !this._filterResult.length || !this._searchCriteria) {
+            if (!this._categoryResult.length || !this._filterResult.length || !this.searchCriteria) {
                 return;
             }
 
@@ -67,8 +67,8 @@
                 return item.category === 'Category';
             });
 
-            var noOfDays = this._dateDiff(this._searchCriteria.pickupDate.date, this._searchCriteria.dropoffDate.date);
-            var noOfHours = this._getTimeDiff(this._searchCriteria.pickupDate.time, this._searchCriteria.dropoffDate.time);
+            var noOfDays = this._dateDiff(this.searchCriteria.pickupDate, this.searchCriteria.dropoffDate);
+            var noOfHours = this._getTimeDiff(this.searchCriteria.pickupTime, this.searchCriteria.dropoffTime);
 
             for (var i = 0; i < categoryFilter.items.length; i++) {
                 this._groupCategoryItems(categoryFilter.items[i].name, this._getAvgPrice(categoryFilter.items[i].value, noOfDays, noOfHours));
