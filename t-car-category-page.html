@@ -1,4 +1,5 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
 <link rel="import" href="../t-shared-lib/t-date-behavior.html">
 <link rel="import" href="t-car-result-api.html">
 <link rel="import" href="t-car-category-item.html">
@@ -27,15 +28,13 @@ Example:
             display: block;
         }
         </style>
-        
-        <content select="t-header"></content>
 
         <t-notify id="notify"></t-notify>
 
         <t-car-result-api
             id="resultApi"
-            loading={{loading}}
-            api-base-url="{{apiBaseUrl}}"
+            loading="{{loading}}"            
+            api-base-url="[[apiBaseUrl]]"
             api-relative-url="api/Car/results/[[searchId]]"
             auth-token="[[authToken]]"
             on-t-car-result-api-success="onResultSuccess"
@@ -44,7 +43,7 @@ Example:
 
         <t-filter-api
             id="filterApi"
-            loading={{loading}}
+            loading="{{loading}}"
             api-base-url="[[apiBaseUrl]]"
             api-relative-url="api/car/filter/[[searchId]]"
             auth-token="[[authToken]]"
@@ -52,20 +51,27 @@ Example:
             on-t-filter-api-error="onFilterError">
         </t-filter-api>
 
-        <template id="list" is="dom-repeat" items="{{list}}">
-            <t-car-category-item
-                category= "{{item.category}}"
-                url="{{item.url}}"
-                price="{{item.price}}"
-                currency="{{currency}}"
-                capacity-range="{{item.capacityRange}}"
-                baggage-range="{{item.baggageRange}}"
-                is-automatic="{{item.isAutomatic}}"
-                is-manual="{{item.isManual}}"
-                door-range="{{item.doorRange}}"
-                air-conditioning="{{item.airConditioning}}">
+        <template id="list" is="dom-repeat" items="[[list]]">
+            <t-car-category-item on-tap="_itemSelected"
+                category= "[[item.category]]"
+                url="[[item.url]]"
+                price="[[item.price]]"
+                currency="[[currency]]"
+                capacity-range="[[item.capacityRange]]"
+                baggage-range="[[item.baggageRange]]"
+                is-automatic="[[item.isAutomatic]]"
+                is-manual="[[item.isManual]]"
+                door-range="[[item.doorRange]]"
+                air-conditioning="[[item.airConditioning]]">
             </t-car-category-item>
         </template>
+
+        <t-sessionstorage
+            id="sessionStore"
+            key="Selected_Category"
+            api-url-format="[[apiUrlFormat]]"
+            on-t-sessionstorage-load-success="onSessionLoad">
+        </t-sessionstorage>
     </template>
     <script>
 (function() {
@@ -112,6 +118,14 @@ Example:
                 type: String,
                 value: '',
                 observer: '_onSearchIdUpdate'
+            },
+
+            /*
+             * <p>This property holds the value of selected category</p>
+             */
+            selectedCategory: {
+                type: String,
+                notify: true
             },
 
             list: {
@@ -188,13 +202,25 @@ Example:
             if (!this.searchId) {
                 return;
             }
+            this.$.sessionStore.load();
 
             this.$.resultApi.queryParams = [{
                 '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
             }];
             this.$.resultApi.search();
             this.$.filterApi.getFilters();
-        }
+        },
+
+        _itemSelected: function (e) {
+            this.selectedCategory = e.currentTarget.category;
+            this.$.sessionStore.value = this.selectedCategory; 
+            this.$.sessionStore.save();
+            this.fire('car-category-select',this.selectedCategory);
+        },
+
+        onSessionLoad: function () {
+            this.selectedCategory = this.$.sessionStore.value;
+        },
     });
 })();
 </script>
