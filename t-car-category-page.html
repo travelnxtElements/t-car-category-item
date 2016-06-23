@@ -29,6 +29,8 @@ Example:
         }
         </style>
 
+        <content select="t-header"></content> 
+
         <t-notify id="notify"></t-notify>
 
         <t-car-result-api
@@ -68,161 +70,180 @@ Example:
 
         <t-sessionstorage
             id="sessionStore"
-            key="Selected_Category"
+            key="Car_Category_Data"
             api-url-format="[[apiUrlFormat]]"
             on-t-sessionstorage-load-success="onSessionLoad">
         </t-sessionstorage>
     </template>
     <script>
-(function() {
+        (function() {
 
-    Polymer({
-        is: 't-car-category-page',
+            Polymer({
+                is: 't-car-category-page',
 
-        behaviors: [
-            TravelNxt.Behaviors.DateBehavior,
-            TravelNxt.Behaviors.CategoryResultBehavior
-        ],
+                behaviors: [
+                    TravelNxt.Behaviors.DateBehavior,
+                    TravelNxt.Behaviors.CategoryResultBehavior
+                ],
 
-        properties: {
+                properties: {
 
-            /*
-             * <p>This string is query string containing token value</p>
-             */
-            authToken: String,
-               
-            /*
-             * <p>This property holds the value of api base URL</p>
-             */
-            apiBaseUrl: String,
+                    /*
+                     * <p>This string is query string containing token value</p>
+                     */
+                    authToken: String,
+                       
+                    /*
+                     * <p>This property holds the value of api base URL</p>
+                     */
+                    apiBaseUrl: String,
+                        
+
+                    /*
+                     * <p>This property holds the value of web api URL format</p>
+                     */
+                    apiUrlFormat: String,
+                       
+
+                    /*
+                     * <p>This property holds the value of currency</p>
+                     */
+                    currency: {
+                        type: String,
+                        value: 'USD'
+                    },
+
+                    /*
+                     * <p>This property holds the value of search id</p>
+                     */
+                    searchId: {
+                        type: String,
+                        value: '',
+                        observer: '_onSearchIdUpdate'
+                    },
+
+                    /*
+                     * <p>This property holds the value of selected category</p>
+                     */
+                    selectedCategory: {
+                        type: String,
+                        notify: true
+                    },
+
+                    /*
+                     * <p>This property holds the value of minimum price for selected category</p>
+                     */
+                    minPrice: {
+                        type: String,
+                        notify: true
+                    },
+
+                    list: {
+                        type: Array,
+                        value: [],
+                        observer: '_renderList'
+                    }
+                },
+
                 
+                observers: [
+                    '_processResultData(_categoryResult, _filterResult, searchCriteria)'
+                ],
+                
+                /*
+                 * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
+                 */
+                onResultSuccess: function(e) {
 
-            /*
-             * <p>This property holds the value of web api URL format</p>
-             */
-            apiUrlFormat: String,
+                    if (!e.detail) {
+                        this.$.notify.active = true;
+                        this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                        console.error('something blew up!');
+                        return;
+                    }
+                    this._categoryResult = e.detail.inventories;
+                },
+
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                 */
+                onResultError: function(e) {
+                    this.$.notify.active = true;
+                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                    console.error(e.detail);
+                    this.fire('t-car-search-error', e.detail);
+                },
+
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                 */
+                onFilterSuccess: function(e) {
+
+                    if (!e.detail) {
+                        this.$.notify.active = true;
+                        this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                        console.error('something blew up!');
+                        return;
+                    }
+
+                    this._filterResult = e.detail.filters;
+                },
+
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                 */
+                onFilterError: function(e) {},
+
                
 
-            /*
-             * <p>This property holds the value of currency</p>
-             */
-            currency: {
-                type: String,
-                value: 'USD'
-            },
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                 */
+                _renderList: function() {
+                    if (this.list && this.list.length) {
+                        this.$.list.render();
+                    }
+                },
 
-            /*
-             * <p>This property holds the value of search id</p>
-             */
-            searchId: {
-                type: String,
-                value: '',
-                observer: '_onSearchIdUpdate'
-            },
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                 */
+                _onSearchIdUpdate: function() {
+                    if (!this.searchId) {
+                        return;
+                    }
+                    this.$.sessionStore.load();
 
-            /*
-             * <p>This property holds the value of selected category</p>
-             */
-            selectedCategory: {
-                type: String,
-                notify: true
-            },
+                    this.$.resultApi.queryParams = [{
+                        '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
+                    }];
+                    this.$.resultApi.search();
+                    this.$.filterApi.getFilters();
+                },
 
-            list: {
-                type: Array,
-                value: [],
-                observer: '_renderList'
-            }
-        },
+                _itemSelected: function (e) {
+                    this.minPrice = e.currentTarget.price;
+                    this.selectedCategory = e.currentTarget.category;
+                    this.$.sessionStore.value = this._getSessionObject();
+                    this.$.sessionStore.save();
+                    this.fire('car-category-select',this._getSessionObject());
+                },
 
-        
-        observers: [
-            '_processResultData(_categoryResult, _filterResult, searchCriteria)'
-        ],
-        
-        /*
-         * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
-         */
-        onResultSuccess: function(e) {
+                onSessionLoad: function () {
+                    if (this.$.sessionStore.value) {
+                        this.selectedCategory = this.$.sessionStore.value.selectedCategory;
+                        this.minPrice = this.$.sessionStore.value.minPrice;
+                    }
+                },
 
-            if (!e.detail) {
-                this.$.notify.active = true;
-                this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                console.error('something blew up!');
-                return;
-            }
-            this._categoryResult = e.detail.inventories;
-        },
-
-        /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-         */
-        onResultError: function(e) {
-            this.$.notify.active = true;
-            this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-            console.error(e.detail);
-            this.fire('t-car-search-error', e.detail);
-        },
-
-        /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-         */
-        onFilterSuccess: function(e) {
-
-            if (!e.detail) {
-                this.$.notify.active = true;
-                this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                console.error('something blew up!');
-                return;
-            }
-
-            this._filterResult = e.detail.filters;
-        },
-
-        /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-         */
-        onFilterError: function(e) {},
-
-       
-
-        /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-         */
-        _renderList: function() {
-            if (this.list && this.list.length) {
-                this.$.list.render();
-            }
-        },
-
-        /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
-         */
-        _onSearchIdUpdate: function() {
-            if (!this.searchId) {
-                return;
-            }
-            this.$.sessionStore.load();
-
-            this.$.resultApi.queryParams = [{
-                '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
-            }];
-            this.$.resultApi.search();
-            this.$.filterApi.getFilters();
-        },
-
-        _itemSelected: function (e) {
-            this.selectedCategory = e.currentTarget.category;
-            this.$.sessionStore.value = this.selectedCategory; 
-            this.$.sessionStore.save();
-            this.fire('car-category-select',this.selectedCategory);
-        },
-
-        onSessionLoad: function () {
-            this.selectedCategory = this.$.sessionStore.value;
-        },
-    });
-})();
-</script>
+                _getSessionObject: function () {
+                    return {
+                        selectedCategory : this.selectedCategory,
+                        minPrice : this.minPrice
+                    };
+                }
+            });
+        })();
+    </script>
 
 </dom-module>
