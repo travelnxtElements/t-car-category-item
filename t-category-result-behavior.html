@@ -130,7 +130,7 @@
             var doorRange = this._getFeaureRange(doorList);
             var baggageRange = this._getFeaureRange(baggageList);
             var capacityRange = this._getFeaureRange(capacityList);
-
+            var gear = this._getGear(isAutomatic, isManual);
             this._listSummary.push({
                 category: categoryName,
                 doorRange: doorRange,
@@ -139,11 +139,22 @@
                 url: url,
                 price: minPrice,
                 airConditioning: airConditioning,
-                isAutomatic: isAutomatic,
-                isManual: isManual
+                gear: gear
             });
         },
 
+        /*
+         * <p>Get gear funciton</p>
+         */
+
+        _getGear: function(isAutomatic,isManual){
+                if(isAutomatic && isManual){
+                    return 'Manual/Auto'
+                }else if(isAutomatic){
+                    return 'Auto'
+                }
+                return 'Manual'
+        },
         /*
          * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
          */

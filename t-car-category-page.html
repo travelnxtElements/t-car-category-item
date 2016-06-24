@@ -27,6 +27,16 @@ Example:
         :host {
             display: block;
         }
+        .container {
+            background-color: #f2f2f2;
+            padding:10px;
+        }
+        .categoryItem {
+            margin-bottom:10px;
+        }
+        .categoryItem:last-of-type {
+            margin-bottom:0;
+        }
         </style>
 
         <content select="t-header"></content> 
@@ -52,21 +62,24 @@ Example:
             on-t-filter-api-success="onFilterSuccess"
             on-t-filter-api-error="onFilterError">
         </t-filter-api>
+        <div class="container">
+            <template id="list" is="dom-repeat" items="[[list]]">
+                <t-car-category-item
+                    class="categoryItem" 
+                    on-tap="_itemSelected"
+                    category= "[[item.category]]"
+                    url="[[item.url]]"
+                    price="[[item.price]]"
+                    currency="[[currency]]"
+                    capacity-range="[[item.capacityRange]]"
+                    baggage-range="[[item.baggageRange]]"
+                    gear="[[item.gear]]"
+                    door-range="[[item.doorRange]]"
+                    air-conditioning="[[item.airConditioning]]">
+                </t-car-category-item>
+            </template>
 
-        <template id="list" is="dom-repeat" items="[[list]]">
-            <t-car-category-item on-tap="_itemSelected"
-                category= "[[item.category]]"
-                url="[[item.url]]"
-                price="[[item.price]]"
-                currency="[[currency]]"
-                capacity-range="[[item.capacityRange]]"
-                baggage-range="[[item.baggageRange]]"
-                is-automatic="[[item.isAutomatic]]"
-                is-manual="[[item.isManual]]"
-                door-range="[[item.doorRange]]"
-                air-conditioning="[[item.airConditioning]]">
-            </t-car-category-item>
-        </template>
+        </div>
 
         <t-sessionstorage
             id="sessionStore"
@@ -197,7 +210,9 @@ Example:
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                     console.error(e.detail);
                     this.fire('t-car-search-error', e.detail);
-                },               
+                },
+
+               
 
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
@@ -215,11 +230,10 @@ Example:
                     if (!this.searchId) {
                         return;
                     }
+                    this.$.sessionStore.load();
 
                     this.$.notify.active = false;
                     
-                    this.$.sessionStore.load();
-
                     this.$.resultApi.queryParams = [{
                         '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
                     }];

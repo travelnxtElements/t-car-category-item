@@ -1,37 +1,66 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../t-image/t-image.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
+<link rel="import" href="../t-text-container/travel-element-styles.html">
+<link rel="import" href="t-car-icons.html">`
 <dom-module id="t-car-category-item">
     <template>
-        <style>
+    <style include="travel-element-styles"></style>
+    <style include="iron-flex">
         :host {
             display: block;
-            margin-top: 10px;
-            border: solid black thin;
-            padding: 5px;
+            background:#fff;
+            border: 1px solid var(--grey-two,#eeeeee);
+            font-family: var(--primary-font-family,'Open sans');
         }
         
         .imageArea {
             width: 100%;
-            height: 150px;
-            margin: 10px 0 10px 0;
         }
-        
-        .imageArea t-image {
-            width: 100%;
-            height: 100%;
+        .category {
+            line-height: 1.7;
+            padding: 0 var(--normal-spacing, 10px);
         }
-        </style>
-        <div class="imageArea">
-            <t-image src=[[url]]></t-image>
+        .icons-area [icon]{
+            height:20px;
+            width:20px;
+        }
+        .icons-area .text{
+            margin: 0 10px 0 5px;
+        }
+     </style>
+        <t-image sizing="contain" class="imageArea" height="120" src=[[url]]></t-image>
+        <div class="font-12 category primary-light-text layout horizontal center border-bottom">
+            <span class="font-18">[[category]]</span>
+            <span class="flex"></span>
+            <span>[[currency]]&nbsp;</span>
+            <span class="font-16">[[price]]</span>
+            <span>&nbsp;PER DAY</span>
         </div>
-        <div><b>Category - </b> {{category}}</div>
-        <div><b>Price - </b> {{_priceText}}</div>
-        <div><b>Capacity - </b>{{capacityRange}}</div>
+        <div class="icons-area layout horizontal center font-12 section-small secondary-text">
+            
+                <iron-icon icon="car:seat"></iron-icon>
+                <span class="text">[[capacityRange]]</span>
+                    <div class="flex"></div>
+                <iron-icon icon="car:luggage"></iron-icon>
+                <span class="text">[[baggageRange]]</span>
+                    <div class="flex"></div>
+                <iron-icon icon="car:gear"></iron-icon>
+                <span class="text">[[gear]]</span>
+                    <div class="flex"></div>  
+                <iron-icon icon="car:door"></iron-icon>
+                <span class="text">[[doorRange]]</span>
+                    <div class="flex"></div>
+                <iron-icon icon="car:ac"></iron-icon>
+                <span class="text">[[airConditioning]]</span>
+            </div>
+        </div>
+        <!--<div><b>Capacity - </b>{{capacityRange}}</div>
         <div><b>Baggage - </b> {{baggageRange}}</div>
         <div><b>Is Automatic - </b> {{isAutomatic}}</div>
         <div><b>Is Manual - </b> {{isManual}}</div>
         <div><b>Doors - </b>{{doorRange}}</div>
-        <div><b>Air Conditioning - </b>{{airConditioning}}</div>
+        <div><b>Air Conditioning - </b>{{airConditioning}}</div>-->
     </template>
     <script>
     Polymer({
@@ -39,46 +68,15 @@
         is: 't-car-category-item',
 
         properties: {
-            url: {
-                type: String,
-                value: '',
-            },
-            category: {
-                type: String,
-                value: '',
-            },
-            _priceText: {
-                type: String,
-                value: '',
-            },
+            
             currency: {
                 type: String,
                 value: 'USD',
             },
-            capacityRange: {
-                type: String,
-                value: '',
-            },
-            baggageRange: {
-                type: String,
-                value: '',
-            },
-            isAutoMatic: {
-                type: Boolean,
-                value: false,
-            },
-            isManual: {
-                type: Boolean,
-                value: false,
-            },
-            doorRange: {
-                type: Number,
-                value: '',
-            },
-            airConditioning: {
-                type: String,
-                value: ''
-            },
+
+          
+            doorRange: Number,
+           
             rentDuration: {
                 type: Number,
                 value: 1
@@ -86,7 +84,6 @@
         },
 
         attached: function() {
-            this._priceText = this.currency + ' ' + this.price + ' PER DAY';
             if (this.category.toLowerCase() === 'notspecified') {
                 this.category = 'Other';
             }
