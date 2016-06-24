@@ -192,9 +192,12 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                onFilterError: function(e) {},
-
-               
+                onFilterError: function(e) {
+                    this.$.notify.active = true;
+                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                    console.error(e.detail);
+                    this.fire('t-car-search-error', e.detail);
+                },               
 
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
@@ -212,6 +215,9 @@ Example:
                     if (!this.searchId) {
                         return;
                     }
+
+                    this.$.notify.active = false;
+                    
                     this.$.sessionStore.load();
 
                     this.$.resultApi.queryParams = [{
