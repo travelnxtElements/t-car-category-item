@@ -21,12 +21,23 @@
             line-height: 1.7;
             padding: 0 var(--normal-spacing, 10px);
         }
-        .icons-area [icon]{
-            height:20px;
-            width:20px;
+        [icon]{
+            height:22px;
+            width:22px;
+        }
+        .gear{
+            height: 18px;
+        }
+        .luggage{
+            position: relative;
+            top: -2px;
+            margin-right: 4px;
         }
         .icons-area .text{
-            margin: 0 10px 0 5px;
+            margin: 0 3px;
+        }
+        .font-10{
+            font-size: var(--font-10,10px);
         }
      </style>
         <t-image sizing="contain" class="imageArea" height="120" src=[[url]]></t-image>
@@ -37,22 +48,25 @@
             <span class="font-16">[[price]]</span>
             <span>&nbsp;PER DAY</span>
         </div>
-        <div class="icons-area layout horizontal center font-12 section-small secondary-text">
+        <div class="icons-area layout horizontal center font-10 section-small secondary-text">
             
                 <iron-icon icon="car:seat"></iron-icon>
                 <span class="text">[[capacityRange]]</span>
                     <div class="flex"></div>
-                <iron-icon icon="car:luggage"></iron-icon>
+                <iron-icon class="luggage" icon="car:luggage"></iron-icon>
                 <span class="text">[[baggageRange]]</span>
                     <div class="flex"></div>
-                <iron-icon icon="car:gear"></iron-icon>
+                <iron-icon class="gear" icon="car:gear"></iron-icon>
                 <span class="text">[[gear]]</span>
                     <div class="flex"></div>  
                 <iron-icon icon="car:door"></iron-icon>
                 <span class="text">[[doorRange]]</span>
+                <template is="dom-if" if="[[airConditioning]]">
                     <div class="flex"></div>
-                <iron-icon icon="car:ac"></iron-icon>
-                <span class="text">[[airConditioning]]</span>
+                    <iron-icon icon="car:ac"></iron-icon>
+                    <span class="text">AC</span>
+                </template>
+                    
             </div>
         </div>
         <!--<div><b>Capacity - </b>{{capacityRange}}</div>
