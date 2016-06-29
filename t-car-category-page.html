@@ -39,15 +39,15 @@ Example:
         }
         </style>
 
-        <content select="t-header"></content> 
-
         <t-notify id="notify"></t-notify>
+
+        <content select="t-header"></content>
 
         <t-car-result-api
             id="resultApi"
             loading="{{loading}}"            
             api-base-url="[[apiBaseUrl]]"
-            api-relative-url="api/Car/results/[[searchId]]"
+            api-relative-url="api/Car/results/[[queryParams.searchId]]"
             auth-token="[[authToken]]"
             on-t-car-result-api-success="onResultSuccess"
             on-t-car-result-api-error="onResultError">
@@ -57,7 +57,7 @@ Example:
             id="filterApi"
             loading="{{loading}}"
             api-base-url="[[apiBaseUrl]]"
-            api-relative-url="api/car/filter/[[searchId]]"
+            api-relative-url="api/car/filter/[[queryParams.searchId]]"
             auth-token="[[authToken]]"
             on-t-filter-api-success="onFilterSuccess"
             on-t-filter-api-error="onFilterError">
@@ -89,7 +89,7 @@ Example:
         </t-sessionstorage>
     </template>
     <script>
-        (function() {
+        (function () {
 
             Polymer({
                 is: 't-car-category-page',
@@ -101,22 +101,28 @@ Example:
 
                 properties: {
 
+                    visible: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
                     /*
                      * <p>This string is query string containing token value</p>
                      */
                     authToken: String,
-                       
+
                     /*
                      * <p>This property holds the value of api base URL</p>
                      */
                     apiBaseUrl: String,
-                        
+
 
                     /*
                      * <p>This property holds the value of web api URL format</p>
                      */
                     apiUrlFormat: String,
-                       
+
 
                     /*
                      * <p>This property holds the value of currency</p>
@@ -124,15 +130,6 @@ Example:
                     currency: {
                         type: String,
                         value: 'USD'
-                    },
-
-                    /*
-                     * <p>This property holds the value of search id</p>
-                     */
-                    searchId: {
-                        type: String,
-                        value: '',
-                        observer: '_onSearchIdUpdate'
                     },
 
                     /*
@@ -155,18 +152,24 @@ Example:
                         type: Array,
                         value: [],
                         observer: '_renderList'
+                    },
+
+                    queryParams: {
+                        type: Object,
+                        notify: true
                     }
                 },
 
-                
+
                 observers: [
-                    '_processResultData(_categoryResult, _filterResult, searchCriteria)'
+                    '_processResultData(_categoryResult, _filterResult, searchCriteria)',
+                    '_onSearchIdUpdate(queryParams.searchId, visible)'
                 ],
-                
+
                 /*
                  * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
                  */
-                onResultSuccess: function(e) {
+                onResultSuccess: function (e) {
 
                     if (!e.detail) {
                         this.$.notify.active = true;
@@ -180,7 +183,7 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                onResultError: function(e) {
+                onResultError: function (e) {
                     this.$.notify.active = true;
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                     console.error(e.detail);
@@ -190,7 +193,7 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                onFilterSuccess: function(e) {
+                onFilterSuccess: function (e) {
 
                     if (!e.detail) {
                         this.$.notify.active = true;
@@ -205,19 +208,19 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                onFilterError: function(e) {
+                onFilterError: function (e) {
                     this.$.notify.active = true;
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                     console.error(e.detail);
                     this.fire('t-car-search-error', e.detail);
                 },
 
-               
+
 
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                _renderList: function() {
+                _renderList: function () {
                     if (this.list && this.list.length) {
                         this.$.list.render();
                     }
@@ -226,14 +229,14 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                _onSearchIdUpdate: function() {
-                    if (!this.searchId) {
+                _onSearchIdUpdate: function (searchId, visible) {
+                    if (!searchId || !visible) {
                         return;
                     }
                     this.$.sessionStore.load();
 
                     this.$.notify.active = false;
-                    
+
                     this.$.resultApi.queryParams = [{
                         '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
                     }];
@@ -244,9 +247,19 @@ Example:
                 _itemSelected: function (e) {
                     this.minPrice = e.currentTarget.price;
                     this.selectedCategory = e.currentTarget.category;
-                    this.$.sessionStore.value = this._getSessionObject();
+
+                    var sessionObject = this._getSessionObject();
+
+                    this.$.sessionStore.value = sessionObject;
                     this.$.sessionStore.save();
-                    this.fire('car-category-select',this._getSessionObject());
+
+                    this.queryParams = {
+                        searchId: this.queryParams.searchId,
+                        selectedCategory: sessionObject.selectedCategory,
+                        minPrice: sessionObject.minPrice
+                    }
+
+                    this.fire('car-category-select', sessionObject);
                 },
 
                 onSessionLoad: function () {
@@ -258,8 +271,8 @@ Example:
 
                 _getSessionObject: function () {
                     return {
-                        selectedCategory : this.selectedCategory,
-                        minPrice : this.minPrice
+                        selectedCategory: this.selectedCategory,
+                        minPrice: this.minPrice
                     };
                 }
             });
