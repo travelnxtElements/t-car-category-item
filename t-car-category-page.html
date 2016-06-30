@@ -44,15 +44,24 @@ Example:
 
         <content select="t-header"></content>
 
-         <t-search-overlay icon="maps:directions-car" id="loadingOverlay">
+        <t-search-overlay icon="maps:directions-car" id="loadingOverlay">
             <div class="data">
-                <div class="text-center secondary-text">
-                    <div class="font16">
+                <div class="font-12 text-center secondary-text overlayData">
+                    <div class="font-16">
                         Pick-up from
                     </div>
-                    <div class="font-12">
-
+                    <div>
+                        [[searchCriteria.pickupLocation.formattedAddress]]
                     </div>
+                    <div class="margin-bottom-medium">[[_getDate(searchCriteria.pickupDate)]]&nbsp;[[searchCriteria.pickupTime]]</div>
+                    <br>
+                    <div class="font-16">
+                        Drop-of to
+                    </div>
+                    <div>
+                        [[searchCriteria.dropoffLocation.formattedAddress]]
+                    </div>
+                    <div>[[_getDate(searchCriteria.dropoffDate)]]&nbsp;[[searchCriteria.dropoffTime]]</div>
                 </div>
             </div>
             <div class="footer">
@@ -205,7 +214,6 @@ Example:
                     //ending the overlay
                     this.$.loadingOverlay.value = 100;
 
-
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                     console.error(e.detail);
                     this.fire('t-car-search-error', e.detail);
@@ -267,6 +275,7 @@ Example:
                     this.$.sessionStore.load();
 
                     //starting the overlay
+                    this.$.loadingOverlay.value = 0;
                     this.$.loadingOverlay.active = true;
 
 
