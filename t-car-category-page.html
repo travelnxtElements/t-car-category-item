@@ -6,6 +6,7 @@
 <link rel="import" href="t-filter-api.html">
 <link rel="import" href="t-category-result-behavior.html">
 <link rel="import" href="../t-notify/t-notify.html">
+<link rel="import" href="../t-search-overlay/t-search-overlay.html">
 <!--
 A comment describing this element
 
@@ -43,6 +44,21 @@ Example:
 
         <content select="t-header"></content>
 
+         <t-search-overlay icon="maps:directions-car" id="loadingOverlay">
+            <div class="data">
+                <div class="text-center secondary-text">
+                    <div class="font16">
+                        Pick-up from
+                    </div>
+                    <div class="font-12">
+
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <img src="[[siteLogoUrl]]" title="[[siteLogoUrl]]" alt="" style="width:232px;">
+            </div>
+        </t-search-overlay>
         <t-car-result-api
             id="resultApi"
             loading="{{loading}}"            
@@ -185,6 +201,11 @@ Example:
                  */
                 onResultError: function (e) {
                     this.$.notify.active = true;
+
+                    //ending the overlay
+                    this.$.loadingOverlay.value = 100;
+
+
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                     console.error(e.detail);
                     this.fire('t-car-search-error', e.detail);
@@ -197,6 +218,10 @@ Example:
 
                     if (!e.detail) {
                         this.$.notify.active = true;
+
+                        //ending the overlay
+                        this.$.loadingOverlay.value = 100;
+
                         this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                         console.error('something blew up!');
                         return;
@@ -210,6 +235,10 @@ Example:
                  */
                 onFilterError: function (e) {
                     this.$.notify.active = true;
+
+                    //ending the overlay
+                    this.$.loadingOverlay.value = 100;
+
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                     console.error(e.detail);
                     this.fire('t-car-search-error', e.detail);
@@ -223,6 +252,8 @@ Example:
                 _renderList: function () {
                     if (this.list && this.list.length) {
                         this.$.list.render();
+                        //ending the overlay
+                        this.$.loadingOverlay.value = 100;
                     }
                 },
 
@@ -234,6 +265,10 @@ Example:
                         return;
                     }
                     this.$.sessionStore.load();
+
+                    //starting the overlay
+                    this.$.loadingOverlay.active = true;
+
 
                     this.$.notify.active = false;
 
