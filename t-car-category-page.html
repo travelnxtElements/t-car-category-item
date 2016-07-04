@@ -188,7 +188,7 @@ Example:
 
                 observers: [
                     '_processResultData(_categoryResult, _filterResult, searchCriteria)',
-                    '_onSearchIdUpdate(queryParams.searchId, visible)'
+                    '_onSearchIdUpdate(queryParams.searchId)'
                 ],
 
                 /*
@@ -268,8 +268,8 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                _onSearchIdUpdate: function (searchId, visible) {
-                    if (!searchId || !visible) {
+                _onSearchIdUpdate: function (searchId) {
+                    if (!searchId) {
                         return;
                     }
                     this.$.sessionStore.load();
