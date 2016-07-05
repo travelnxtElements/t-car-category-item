@@ -72,7 +72,7 @@ Example:
             id="resultApi"
             loading="{{loading}}"            
             api-base-url="[[apiBaseUrl]]"
-            api-relative-url="api/Car/results/[[queryParams.searchId]]"
+            api-relative-url="api/Car/results/[[searchId]]"
             auth-token="[[authToken]]"
             on-t-car-result-api-success="onResultSuccess"
             on-t-car-result-api-error="onResultError">
@@ -82,7 +82,7 @@ Example:
             id="filterApi"
             loading="{{loading}}"
             api-base-url="[[apiBaseUrl]]"
-            api-relative-url="api/car/filter/[[queryParams.searchId]]"
+            api-relative-url="api/car/filter/[[searchId]]"
             auth-token="[[authToken]]"
             on-t-filter-api-success="onFilterSuccess"
             on-t-filter-api-error="onFilterError">
@@ -173,22 +173,25 @@ Example:
                         notify: true
                     },
 
+                    /*
+                     * <p>This property holds the value of minimum price for selected category</p>
+                     */
+                    searchId: {
+                        type: String,
+                        notify: true
+                    },
+
                     list: {
                         type: Array,
                         value: [],
                         observer: '_renderList'
-                    },
-
-                    queryParams: {
-                        type: Object,
-                        notify: true
                     }
                 },
 
 
                 observers: [
                     '_processResultData(_categoryResult, _filterResult, searchCriteria)',
-                    '_onSearchIdUpdate(queryParams.searchId)'
+                    '_onSearchIdUpdate(searchId, visible)'
                 ],
 
                 /*
@@ -268,8 +271,8 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                _onSearchIdUpdate: function (searchId) {
-                    if (!searchId) {
+                _onSearchIdUpdate: function (searchId, visible) {
+                    if (!searchId || !visible) {
                         return;
                     }
                     this.$.sessionStore.load();
@@ -297,11 +300,8 @@ Example:
                     this.$.sessionStore.value = sessionObject;
                     this.$.sessionStore.save();
 
-                    this.queryParams = {
-                        searchId: this.queryParams.searchId,
-                        selectedCategory: sessionObject.selectedCategory,
-                        minPrice: sessionObject.minPrice
-                    }
+                    this.selectedCategory = sessionObject.selectedCategory;
+                    this.minPrice = sessionObject.minPrice;
 
                     this.fire('car-category-select', sessionObject);
                 },
