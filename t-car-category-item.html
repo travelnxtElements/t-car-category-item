@@ -2,7 +2,7 @@
 <link rel="import" href="../t-image/t-image.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
 <link rel="import" href="../t-text-container/travel-element-styles.html">
-<link rel="import" href="t-car-icons.html">`
+<link rel="import" href="t-car-icons.html">
 <dom-module id="t-car-category-item">
     <template>
     <style include="travel-element-styles"></style>
@@ -52,7 +52,6 @@
             <span>&nbsp;AVG PER DAY</span>
         </div>
         <div class="icons-area layout horizontal center font-10 section-small secondary-text">
-            
                 <iron-icon icon="car:seat"></iron-icon>
                 <span class="text">[[capacityRange]]</span>
                     <div class="flex"></div>
@@ -69,15 +68,8 @@
                     <iron-icon icon="car:ac"></iron-icon>
                     <span class="text">AC</span>
                 </template>
-                    
             </div>
         </div>
-        <!--<div><b>Capacity - </b>{{capacityRange}}</div>
-        <div><b>Baggage - </b> {{baggageRange}}</div>
-        <div><b>Is Automatic - </b> {{isAutomatic}}</div>
-        <div><b>Is Manual - </b> {{isManual}}</div>
-        <div><b>Doors - </b>{{doorRange}}</div>
-        <div><b>Air Conditioning - </b>{{airConditioning}}</div>-->
     </template>
     <script>
     Polymer({

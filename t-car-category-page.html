@@ -6,6 +6,7 @@
 <link rel="import" href="t-filter-api.html">
 <link rel="import" href="t-category-result-behavior.html">
 <link rel="import" href="../t-notify/t-notify.html">
+<link rel="import" href="../t-text-container/travel-element-styles.html">
 <link rel="import" href="../t-search-overlay/t-search-overlay.html">
 <!--
 A comment describing this element
@@ -24,7 +25,7 @@ Example:
 -->
 <dom-module id="t-car-category-page">
     <template>
-        <style>
+        <style include="travel-element-styles">
         :host {
             display: block;
         }
@@ -54,9 +55,8 @@ Example:
                         [[searchCriteria.pickupLocation.formattedAddress]]
                     </div>
                     <div class="margin-bottom-medium">[[_getDate(searchCriteria.pickupDate)]]&nbsp;[[searchCriteria.pickupTime]]</div>
-                    <br>
                     <div class="font-16">
-                        Drop-of to
+                        Drop-off to
                     </div>
                     <div>
                         [[searchCriteria.dropoffLocation.formattedAddress]]
