@@ -74,8 +74,8 @@ Example:
             api-base-url="[[apiBaseUrl]]"
             api-relative-url="api/Car/results/[[searchId]]"
             auth-token="[[authToken]]"
-            on-t-car-result-api-success="onResultSuccess"
-            on-t-car-result-api-error="onResultError">
+            on-t-car-result-api-success="_onResultSuccess"
+            on-t-car-result-api-error="_onResultError">
         </t-car-result-api>
 
         <t-filter-api
@@ -84,7 +84,7 @@ Example:
             api-base-url="[[apiBaseUrl]]"
             api-relative-url="api/car/filter/[[searchId]]"
             auth-token="[[authToken]]"
-            on-t-filter-api-success="onFilterSuccess"
+            on-t-filter-api-success="_onFilterSuccess"
             on-t-filter-api-error="onFilterError">
         </t-filter-api>
         <div class="container">
@@ -114,9 +114,13 @@ Example:
         </t-sessionstorage>
     </template>
     <script>
+
         (function () {
 
+            'use strict'
+
             Polymer({
+
                 is: 't-car-category-page',
 
                 behaviors: [
@@ -188,16 +192,48 @@ Example:
                     }
                 },
 
-
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                 */
                 observers: [
+                    '_visibleChange(visible)',
                     '_processResultData(_categoryResult, _filterResult, searchCriteria)',
-                    '_onSearchIdUpdate(searchId, visible)'
+                    '_onSearchIdUpdate(searchId)'
                 ],
+
+                _visibleChange: function (visible) {
+                    if (visible && (!this.authToken || !this.searchId)) {
+                        this.fire('go-to-search');
+                    }
+                },
+
+                /*
+                 * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+                 */
+                _onSearchIdUpdate: function (authToken, searchId) {
+                    if (!searchId || !authToken) {
+                        return;
+                    }
+                    this.$.sessionStore.load();
+
+                    //starting the overlay
+                    this.$.loadingOverlay.value = 0;
+                    this.$.loadingOverlay.active = true;
+
+
+                    this.$.notify.active = false;
+
+                    this.$.resultApi.queryParams = [{
+                        '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
+                    }];
+                    this.$.resultApi.search();
+                    this.$.filterApi.getFilters();
+                },
 
                 /*
                  * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
                  */
-                onResultSuccess: function (e) {
+                _onResultSuccess: function (e) {
 
                     if (!e.detail) {
                         this.$.notify.active = true;
@@ -211,7 +247,7 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                onResultError: function (e) {
+                _onResultError: function (e) {
                     this.$.notify.active = true;
 
                     //ending the overlay
@@ -225,7 +261,7 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                onFilterSuccess: function (e) {
+                _onFilterSuccess: function (e) {
 
                     if (!e.detail) {
                         this.$.notify.active = true;
@@ -271,8 +307,8 @@ Example:
                 /*
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
-                _onSearchIdUpdate: function (searchId, visible) {
-                    if (!searchId || !visible) {
+                _onSearchIdUpdate: function (searchId) {
+                    if (!searchId ) {
                         return;
                     }
                     this.$.sessionStore.load();
