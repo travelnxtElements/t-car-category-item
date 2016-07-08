@@ -45,7 +45,7 @@ Example:
 
         <content select="t-header"></content>
 
-        <t-search-overlay icon="maps:directions-car" id="loadingOverlay">
+        <t-search-overlay icon="[[carIcon]]" id="loadingOverlay">
             <div class="data">
                 <div class="font-12 text-center secondary-text overlayData">
                     <div class="font-16">
@@ -92,6 +92,7 @@ Example:
                 <t-car-category-item
                     class="categoryItem" 
                     on-tap="_itemSelected"
+                    car-icon="[[carIcon]]"
                     category= "[[item.category]]"
                     url="[[item.url]]"
                     price="[[item.price]]"
