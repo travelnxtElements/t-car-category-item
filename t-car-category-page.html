@@ -197,12 +197,12 @@ Example:
                  */
                 observers: [
                     '_visibleChange(visible)',
-                    '_processResultData(_categoryResult, _filterResult, searchCriteria)',
-                    '_onSearchIdUpdate(searchId)'
+                    '_onSearchIdUpdate(authToken, searchId)',
+                    '_processResultData(_categoryResult, _filterResult, searchCriteria)'
                 ],
 
                 _visibleChange: function (visible) {
-                    if (visible && (!this.authToken || !this.searchId)) {
+                    if (visible && (!this.searchId || !this.authToken)) {
                         this.fire('go-to-search');
                     }
                 },
