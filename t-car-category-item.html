@@ -45,7 +45,7 @@
      </style>
         <t-image sizing="contain" class="imageArea" height="120" src=[[url]]></t-image>
         <div class="font-12 category primary-light-text layout horizontal center border-bottom">
-            <span class="font-18 ">[[category]]</span>
+            <span class="font-18 ">[[_checkIfNotSpecified(category)]]</span>
             <span class="flex"></span>
             <span>[[currency]]&nbsp;</span>
             <span class="font-16">[[price]]</span>
@@ -91,12 +91,11 @@
             }
         },
 
-        attached: function() {
-            if (this.category.toLowerCase() === 'notspecified') {
-                this.category = 'Other';
-            }
+        _checkIfNotSpecified: function(category){
+             return category.toLowerCase() === 'notspecified' 
+                                            ? 'Other' 
+                                            : category;
         }
-
     });
     </script>
 </dom-module>
