@@ -24,24 +24,28 @@ Example:
 @demo demo/index.html
 -->
 <dom-module id="t-car-category-page">
+
     <template>
         <style include="travel-element-styles">
-        :host {
-            display: block;
-        }
-        .container {
-            background-color: #f2f2f2;
-            padding:10px;
-        }
-        .categoryItem {
-            margin-bottom:10px;
-        }
-        .categoryItem:last-of-type {
-            margin-bottom:0;
-        }
-        </style>
+            :host {
+                display: block;
+                font-family: var(--primary-font-family, 'Open sans');
+            }
+            .container {
+                background-color: #f2f2f2;
+                padding: var(--normal-spacing,10px);
+            }
+            .categoryItem {
+                margin-bottom: var(--normal-spacing,10px);
+            }
+            .categoryItem:last-of-type {
+                margin-bottom: 0;
+            }
 
-        <t-notify id="notify"></t-notify>
+            .link {
+                color: var(--link-color,#0098ff);
+            }
+        </style>
 
         <content select="t-header"></content>
 
@@ -68,6 +72,34 @@ Example:
                 <img src="[[siteLogoUrl]]" title="[[siteLogoUrl]]" alt="" style="width:232px;">
             </div>
         </t-search-overlay>
+
+        <template is="dom-if" if="[[!list.length]]">
+            <div class="error-message section-small font-12 secondary-text">
+                <div>We could not find any cars for your search.</div>
+                <div>
+                    <a class="link" on-click="_redirectToPage" >modify search</a>
+                </div>
+            </div>
+        </template>
+
+        <div class="container" hidden$="[[!list.length]]">
+            <template id="list" is="dom-repeat" items="[[list]]">
+                <t-car-category-item
+                    class="categoryItem" 
+                    on-tap="_itemSelected"
+                    category= "[[item.category]]"
+                    url="[[item.url]]"
+                    price="[[item.price]]"
+                    currency="[[currency]]"
+                    capacity-range="[[item.capacityRange]]"
+                    baggage-range="[[item.baggageRange]]"
+                    gear="[[item.gear]]"
+                    door-range="[[item.doorRange]]"
+                    air-conditioning="[[item.airConditioning]]">
+                </t-car-category-item>
+            </template>
+        </div>
+
         <t-car-result-api
             id="resultApi"
             loading="{{loading}}"            
@@ -87,26 +119,7 @@ Example:
             on-t-filter-api-success="_onFilterSuccess"
             on-t-filter-api-error="onFilterError">
         </t-filter-api>
-        <div class="container">
-            <template id="list" is="dom-repeat" items="[[list]]">
-                <t-car-category-item
-                    class="categoryItem" 
-                    on-tap="_itemSelected"
-                    car-icon="[[carIcon]]"
-                    category= "[[item.category]]"
-                    url="[[item.url]]"
-                    price="[[item.price]]"
-                    currency="[[currency]]"
-                    capacity-range="[[item.capacityRange]]"
-                    baggage-range="[[item.baggageRange]]"
-                    gear="[[item.gear]]"
-                    door-range="[[item.doorRange]]"
-                    air-conditioning="[[item.airConditioning]]">
-                </t-car-category-item>
-            </template>
-
-        </div>
-
+        
         <t-sessionstorage
             id="sessionStore"
             key="Car_Category_Data"
@@ -114,6 +127,7 @@ Example:
             on-t-sessionstorage-load-success="onSessionLoad">
         </t-sessionstorage>
     </template>
+
     <script>
 
         (function () {
@@ -221,9 +235,6 @@ Example:
                     this.$.loadingOverlay.value = 0;
                     this.$.loadingOverlay.active = true;
 
-
-                    this.$.notify.active = false;
-
                     this.$.resultApi.queryParams = [{
                         '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
                     }];
@@ -237,9 +248,7 @@ Example:
                 _onResultSuccess: function (e) {
 
                     if (!e.detail) {
-                        this.$.notify.active = true;
-                        this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                        console.error('something blew up!');
+                        this._categoryResult = [];
                         return;
                     }
                     this._categoryResult = e.detail.inventories;
@@ -249,12 +258,11 @@ Example:
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
                 _onResultError: function (e) {
-                    this.$.notify.active = true;
 
                     //ending the overlay
                     this.$.loadingOverlay.value = 100;
 
-                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                    this.list = [];
                     console.error(e.detail);
                     this.fire('t-car-search-error', e.detail);
                 },
@@ -265,12 +273,10 @@ Example:
                 _onFilterSuccess: function (e) {
 
                     if (!e.detail) {
-                        this.$.notify.active = true;
 
                         //ending the overlay
                         this.$.loadingOverlay.value = 100;
 
-                        this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                         console.error('something blew up!');
                         return;
                     }
@@ -282,12 +288,10 @@ Example:
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
                 onFilterError: function (e) {
-                    this.$.notify.active = true;
 
                     //ending the overlay
                     this.$.loadingOverlay.value = 100;
 
-                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                     console.error(e.detail);
                     this.fire('t-car-search-error', e.detail);
                 },
@@ -298,11 +302,11 @@ Example:
                  * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
                  */
                 _renderList: function () {
-                    if (this.list && this.list.length) {
+                    //if (this.list && this.list.length) {
                         this.$.list.render();
                         //ending the overlay
                         this.$.loadingOverlay.value = 100;
-                    }
+                    //}
                 },
 
                 /*
@@ -317,9 +321,6 @@ Example:
                     //starting the overlay
                     this.$.loadingOverlay.value = 0;
                     this.$.loadingOverlay.active = true;
-
-
-                    this.$.notify.active = false;
 
                     this.$.resultApi.queryParams = [{
                         '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
@@ -343,6 +344,10 @@ Example:
                     this.fire('car-category-select', sessionObject);
                 },
 
+                _redirectToPage: function() {
+                    this.fire('go-to-search');
+                },
+
                 onSessionLoad: function () {
                     if (this.$.sessionStore.value) {
                         this.selectedCategory = this.$.sessionStore.value.selectedCategory;
@@ -357,6 +362,7 @@ Example:
                     };
                 }
             });
+
         })();
     </script>
 
