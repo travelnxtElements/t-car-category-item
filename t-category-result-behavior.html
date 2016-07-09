@@ -164,6 +164,9 @@
          * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
          */
         _getFeaureRange: function(feature) {
+            if (!feature || !feature.length) {
+                return '';
+            }
             var minValue = Math.min.apply(null, feature);
             var maxValue = Math.max.apply(null, feature);
             if (minValue === maxValue) {
