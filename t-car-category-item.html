@@ -38,11 +38,11 @@
                 top: -2px;
                 margin-right: 4px;
             }
-            .icons-area .text{
-                margin: 0 10px 0 0;
-            }
             .font-10{
                 font-size: var(--font-10,10px);
+            }
+            .icons-area > .flex:last-of-type{
+                display:none;
             }
         </style>
 
@@ -66,26 +66,31 @@
             <template is="dom-if" if="[[capacityRange]]">
                 <iron-icon icon="car:seat"></iron-icon>
                 <span class="text">[[capacityRange]]</span>
+                <div class="flex"></div>
             </template>
 
             <template is="dom-if" if="[[baggageRange]]">
                 <iron-icon class="luggage" icon="car:luggage"></iron-icon>
                 <span class="text">[[baggageRange]]</span>
+                <div class="flex"></div>
             </template>
 
             <template is="dom-if" if="[[gear]]">
                 <iron-icon class="gear" icon="car:gear"></iron-icon>
                 <span class="text">[[gear]]</span>
+                <div class="flex"></div>
             </template>
 
             <template is="dom-if" if="[[doorRange]]">
                 <iron-icon icon="car:door"></iron-icon>
                 <span class="text">[[doorRange]]</span>
+                <div class="flex"></div>
             </template>
 
             <template is="dom-if" if="[[airConditioning]]">
                 <iron-icon icon="car:ac"></iron-icon>
                 <span class="text">AC</span>
+                <div class="flex"></div>
             </template>
         </div>
 
