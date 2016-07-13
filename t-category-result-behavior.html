@@ -78,6 +78,12 @@
             for (var i = 0; i < categoryFilter.items.length; i++) {
                 this._groupCategoryItems(categoryFilter.items[i].name, this._getAvgPrice(categoryFilter.items[i].value, noOfDays, noOfHours));
             }
+
+            if (this._listSummary && this._listSummary.length && window.xas) {
+                this._listSummary.sort(function (a, b) {
+                    return a.price - b.price;
+                });
+            }
         },
 
         /*
