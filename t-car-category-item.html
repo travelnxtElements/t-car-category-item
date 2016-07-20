@@ -3,6 +3,37 @@
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
 <link rel="import" href="../t-text-container/travel-element-styles.html">
 <link rel="import" href="t-car-icons.html">
+<!--
+    <h3>Details:</h3>
+
+        `t-car-category-item` is a car catagory component integrated with mystique apis
+
+        This component shows a car catagory item and its details such as:
+
+            1. Catagory Name and its image
+            2. Lowest starting prize
+            3. Car features like allowed passenger count, baggage, transmission, AC/Non AC, Car doors
+
+        This component expects all the features come as attributes from parent view.
+
+    <h3>Example:</h3>
+
+        <t-car-category-item
+            class="categoryItem" 
+            category= "{{url}}"
+            url="{{category}}"
+            car-icon="{{carIcon}}"
+            price="{{price}}"
+            currency="{{currency}}"
+            capacity-range="{{capacityRange}}"
+            baggage-range="{{baggageRange}}"
+            gear="{{gear}}"
+            door-range="{{doorRange}}"
+            air-conditioning="{{airConditioning}}">
+        </t-car-category-item>
+
+    @demo demo/index.html
+-->
 <dom-module id="t-car-category-item">
     <template>
 
@@ -111,19 +142,68 @@
 
                 properties: {
                     
+                    /**
+                     * <p>This is currency of prize to show. Default value is USD</p>
+                     */
                     currency: {
                         type: String,
                         value: 'USD',
                     },
 
+                    /**
+                     * <p>This is lowest price of the car in the category</p>
+                     */
+                    price: String,
+
+                    /**
+                     * <p>This car catagory image url. Must be provided by parent view who is consuming this component</p>
+                     */
+                    url: String,
+
+                    /**
+                     * <p>This is configurable car loading icon</p>
+                     */
+                    carIcon: String,
+
+                    /**
+                     * <p>This is name of a car category</p>
+                     */
+                    category: String,
+
+                    /**
+                     * <p>This is capacity of car, ex: '4 to 5'</p>
+                     */
+                    capacityRange: String,
+
+                    /**
+                     * <p>This specifies number of doors</p>
+                     */
                     doorRange: Number,
 
-                    rentDuration: {
-                        type: Number,
-                        value: 1
+                    /**
+                     * <p>This specifies transmission type i.e. Automatic or Manual transmission</p>
+                     */
+                    gear: String,
+
+                    /**
+                     * <p>This specifies baggage range ex: '3 to 4'</p>
+                     */
+                    baggageRange: String,
+
+                    /**
+                     * <p>This is true if catogory have `AC` cars</p>
+                     */
+                    airConditioning: {
+                        type: Boolean,
+                        value: false
                     }
                 },
 
+                /**
+                 * `_checkIfNotSpecified` is a method to check if car category is specified. Also checks if, category is 'notspecified']
+                 * @param  {[String]} category [This is name of a car category]
+                 * @return {[Boolean]}          [Returns true or false]
+                 */
                 _checkIfNotSpecified: function(category){
                     if(category.length >= 15){
                         this.$.category.classList.add('large-category');

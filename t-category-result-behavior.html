@@ -19,21 +19,118 @@
     TravelNxt.Behaviors.CategoryResultBehavior = {
         properties: {
 
+            /**
+             * Array of car results, following is sample array
+             *     `[{
+                    "heroImageUrl": "https://cdn.cartrawler.com/otaimages/toyota/rav_4_nologo.jpg",
+                    "doors": "Five",
+                    "transmission": "Automatic",
+                    "airConditioning": "Yes",
+                    "baggage": 3,
+                    "capacity": "FourToFive",
+                    "category": "Intermediate"
+                    }]`
+             */
             _categoryResult: {
                 type: Array,
                 value: []
             },
 
+            /**
+             * Array of filter items, sample:
+             * [{
+                    "category": "Location",
+                    "type": "Options",
+                    "label": "Location",
+                    "items": [{
+                        "group": "Location",
+                        "name": "At airport",
+                        "label": "At airport",
+                        "displayValue": null,
+                        "value": "163.57",
+                        "selectedValue": null,
+                        "additionalInfo": [{
+                            "key": "Count",
+                            "value": "120"
+                        }]
+                    }, {
+                        "group": "Location",
+                        "name": "In terminal",
+                        "label": "In terminal",
+                        "displayValue": null,
+                        "value": "163.57",
+                        "selectedValue": null,
+                        "additionalInfo": [{
+                            "key": "Count",
+                            "value": "85"
+                        }]
+                    }],
+                    "settings": null
+                }]
+             */
             _filterResult: {
                 type: Array,
                 value: []
             },
 
+            /**
+             * Summary of items present in a car category
+             * Sample array object:
+             * [{
+                    "category": "Compact",
+                    "doorRange": "3 - 5",
+                    "baggageRange": "0 - 3",
+                    "capacityRange": "4 - 5",
+                    "url": "https://cdn.cartrawler.com/otaimages/nissan/versa_nologo.jpg",
+                    "price": 28,
+                    "airConditioning": true,
+                    "gear": "Auto"
+                }]
+             */
             _listSummary: {
                 type: Array,
                 value: []
             },
 
+            /**
+             * Search criteria object
+             * sample object
+             * {
+                    "pickupLocation": {
+                        "code": "LAS",
+                        "name": "McCarran International Airport",
+                        "cityName": "Las Vegas",
+                        "countryCode": "US",
+                        "countryName": "United States",
+                        "geoCode": "36.0854,-115.15",
+                        "id": 2102,
+                        "stateCode": "NV",
+                        "stateName": "Nevada",
+                        "type": "Airport",
+                        "additionalInfo": null,
+                        "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
+                    },
+                    "pickupDate": "08/31/2016",
+                    "dropoffLocation": {
+                        "code": "LAS",
+                        "name": "McCarran International Airport",
+                        "cityName": "Las Vegas",
+                        "countryCode": "US",
+                        "countryName": "United States",
+                        "geoCode": "36.0854,-115.15",
+                        "id": 2102,
+                        "stateCode": "NV",
+                        "stateName": "Nevada",
+                        "type": "Airport",
+                        "additionalInfo": null,
+                        "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
+                    },
+                    "dropoffDate": "09/06/2016",
+                    "isDropoffLocationSame": true,
+                    "pickupTime": "11:00 AM",
+                    "dropoffTime": "11:00 AM"
+                }
+             */
             searchCriteria: {
                 type: Object,
                 value: null
@@ -43,7 +140,7 @@
 
 
         /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         * <p>Observer method, called when any of `_categoryResult`, `_filterResult`, `searchCriteria` changes</p>
          */
         _processResultData: function() {
 
@@ -61,7 +158,7 @@
         },
 
         /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         * <p>Translates api results to required form to show category listing. Called every time `_processResultData` is called</p>
          */
         _translateCategoryResult: function() {
 
@@ -87,7 +184,7 @@
         },
 
         /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         * <p>Returns Average price per days</p>
          */
         _getAvgPrice: function(price, noOfDays, noOfHours) {
             if (noOfHours > 0) {
@@ -98,7 +195,7 @@
         },
 
         /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         * <p>Returns a group of category item</p>
          */
         _groupCategoryItems: function(categoryName, minPrice) {
 
@@ -112,7 +209,7 @@
         },
 
         /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         * <p>builds car category summary item</p>
          */
         _buildCategoryListItem: function(perCategoryResult, minPrice) {
 
@@ -155,9 +252,8 @@
         },
 
         /*
-         * <p>Get gear funciton</p>
+         * <p>Returns whether transmission is Auto or Manual</p>
          */
-
         _getGear: function(isAutomatic,isManual){
                 if(isAutomatic && isManual){
                     return 'Manual/Auto'
@@ -166,8 +262,9 @@
                 }
                 return 'Manual'
         },
+
         /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         * <p>Returns maximum and minimum value of a car category feature</p>
          */
         _getFeaureRange: function(feature) {
             if (!feature || !feature.length) {
@@ -183,7 +280,7 @@
         },
 
         /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         * <p>Converts car capacity into required form</p>
          */
         _convertCapacity: function(capacityList) {
             var list = [];
@@ -197,7 +294,7 @@
         },
 
         /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         * <p>Maps count into its equivalent number</p>
          */
         _parseCount: function(array) {
             var updatedArray = [];
@@ -210,7 +307,7 @@
         },
 
         /*
-         * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+         * <p>Returns unique items from an Array</p>
          */
         _getUniqueItems: function(array) {
             var u = {},
