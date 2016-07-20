@@ -11,33 +11,87 @@
 
     <link rel="import" href="../t-car-category-item.html">
     <link rel="import" href="../t-car-category-page.html">
-    <link rel="import" href="../../t-mystique-auth/t-mystique-auth.html">
+    <link rel="import" href="../../t-header/t-car-search-recap.html">
+    <link rel="import" href="../../t-header/t-header.html">
 
     <style is="custom-style" include="demo-pages-shared-styles">
     </style>
+    <style>
+            :host {
+                display: block;
+            }
+
+            t-car-search-recap {
+                --font-16: 14px;
+                --car-header-line-height: 16px;
+            }
+
+            t-header .body.t-header {
+                background: #0099cc;
+                height: 48px;
+            }
+        </style>
   </head>
   <body>
 
     <template is="dom-bind" id="domBindTemplate">
 
-      <t-car-search-api 
-          id="searchApi" 
-          loading={{loading}} 
-          api-base-url="http://qa-mystiquecode.tavisca.com/"
-          api-relative-url="api/Car/search"
-          on-t-car-search-api-success="onSearchSuccess"
-          on-t-car-search-api-error="onSearchError">
-      </t-car-search-api>
 
-      <t-car-category-page
-        id="carCategoryPage"
-        api-base-url="http://qa-mystiquecode.tavisca.com/"
-        auth-token="32lfaerut5d3wn0jmsowpoio"
-        search-id="c752db10-12d3-4057-9c8f-4ff3e8a64d7e"
-        api-url-format="/api/Session/SESSIONKEY">
-      </t-car-category-page>
+
+        <t-car-category-page
+            id="carCategoryPage"
+            api-base-url="http://qa-mystiquecode.tavisca.com/"
+            auth-token="fjygi5s4czd1xwnfgsegxtvv"
+            search-id="75261b7e-4f6c-4786-81a6-2e9f93108378"
+            api-url-format="/api/Session/SESSIONKEY">
+            <t-header icon="bgv:arrow-left" url="#">
+                <t-car-search-recap id="searchCriteriaRecap" data="[[searchCriteria]]"></t-car-search-recap>
+            </t-header>
+        </t-car-category-page>
     </template>
-
+    
+    <script>
+        window.addEventListener('WebComponentsReady', function(e) {
+            var searchCriteria = {
+                                    "pickupLocation": {
+                                        "code": "LAS",
+                                        "name": "McCarran International Airport",
+                                        "cityName": "Las Vegas",
+                                        "countryCode": "US",
+                                        "countryName": "United States",
+                                        "geoCode": "36.0854,-115.15",
+                                        "id": 2102,
+                                        "stateCode": "NV",
+                                        "stateName": "Nevada",
+                                        "type": "Airport",
+                                        "additionalInfo": null,
+                                        "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
+                                    },
+                                    "pickupDate": "08/30/2016",
+                                    "dropoffLocation": {
+                                        "code": "LAS",
+                                        "name": "McCarran International Airport",
+                                        "cityName": "Las Vegas",
+                                        "countryCode": "US",
+                                        "countryName": "United States",
+                                        "geoCode": "36.0854,-115.15",
+                                        "id": 2102,
+                                        "stateCode": "NV",
+                                        "stateName": "Nevada",
+                                        "type": "Airport",
+                                        "additionalInfo": null,
+                                        "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
+                                    },
+                                    "dropoffDate": "09/06/2016",
+                                    "isDropoffLocationSame": true,
+                                    "pickupTime": "11:00 AM",
+                                    "dropoffTime": "11:00 AM"
+                                };
+            var templatizer = document.getElementById('domBindTemplate');
+            templatizer.$.carCategoryPage.searchCriteria = searchCriteria;
+            templatizer.$.searchCriteriaRecap.data = searchCriteria;
+        });
+    </script>
   </body>
 
 </html>
