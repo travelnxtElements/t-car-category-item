@@ -6,38 +6,6 @@
 
         `t-car-result-api` is a car search api component integrated with mystique apis.
 
-        It fires mystique search call and returns `searchId` upon successful opearion
-
-    <h3>Object Structure:</h3>
-
-        1. This component uses following request format to search cars -
-
-            var request = {
-                "productType": "car",
-                "pickupLocation": {
-                    "name": "McCarran International Airport",
-                    "geoCode": "36.0854,-115.15",
-                    "type": "Airport",
-                    "code": "LAS",
-                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
-                },
-                "pickupDate": {
-                    "date": "06/23/2016",
-                    "time": "11 AM"
-                },
-                "dropoffDate": {
-                    "date": "06/25/2016",
-                    "time": "12 AM"
-                },
-                "dropoffLocation": {
-                    "name": "McCarran International Airport",
-                    "geoCode": "36.0854,-115.15",
-                    "type": "Airport",
-                    "code": "LAS",
-                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
-                }
-            };
-
     <h3>Events:</h3>
 
         following events are fired by this component
@@ -47,14 +15,14 @@
 
     <h3>Example:</h3>
 
-        <t-car-result-api 
-            id="searchApi" 
-            loading={{loading}} 
-            api-base-url="{{apiBaseUrl}}" 
-            api-relative-url="api/Car/search" 
+        t-car-result-api
+            id="resultApi"
+            loading="{{loading}}"            
+            api-base-url="{{apiBaseUrl}}"
+            api-relative-url="{{relativeUrlWithSearchId}}"
             auth-token="{{authToken}}"
-            on-t-car-result-api-success="onSearchSuccess"
-            on-t-car-result-api-error="onSearchError">
+            on-t-car-result-api-success="{{_onResultSuccessMethod}}"
+            on-t-car-result-api-error="{{_onResultErrorMethod}}">
         </t-car-result-api>
 
     @demo demo/index.html
