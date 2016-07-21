@@ -17,13 +17,9 @@
     <style is="custom-style" include="demo-pages-shared-styles">
     </style>
     <style>
-            :host {
-                display: block;
-            }
-
-            t-car-search-recap {
-                --font-16: 14px;
-                --car-header-line-height: 16px;
+            body:not([style-scope]):not(.style-scope) {
+                padding: 0;
+                margin: 0;
             }
 
             t-header .body.t-header {
@@ -33,19 +29,15 @@
         </style>
   </head>
   <body>
-
     <template is="dom-bind" id="domBindTemplate">
-
-
-
         <t-car-category-page
             id="carCategoryPage"
             api-base-url="http://qa-mystiquecode.tavisca.com/"
             auth-token="fjygi5s4czd1xwnfgsegxtvv"
             search-id="75261b7e-4f6c-4786-81a6-2e9f93108378"
             api-url-format="/api/Session/SESSIONKEY">
-            <t-header icon="bgv:arrow-left" url="#">
-                <t-car-search-recap id="searchCriteriaRecap" data="[[searchCriteria]]"></t-car-search-recap>
+            <t-header icon="arrow-back" url="#">
+                <t-car-search-recap id="searchCriteriaRecap"></t-car-search-recap>
             </t-header>
         </t-car-category-page>
     </template>
