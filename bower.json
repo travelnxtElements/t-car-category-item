@@ -14,7 +14,9 @@
     "t-shared-lib": "travelnxtelements/t-shared-lib#^1.0.2",
     "iron-flex-layout": "polymerelements/iron-flex-layout#^1.3.1",
     "t-search-overlay": "travelnxtElements/t-search-overlay#^1.0.0",
-    "t-text-container": "travelnxtElements/t-text-container#^1.0.0"
+    "t-text-container": "travelnxtElements/t-text-container#^1.0.0",
+    "t-header": "travelnxtelements/t-header#^1.5.14",
+    "t-behavior": "travelnxtelements/t-behavior#^1.0.5"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

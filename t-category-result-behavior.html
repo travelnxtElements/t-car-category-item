@@ -288,6 +288,9 @@
                 if (capacityList[i].indexOf('To') > -1) {
                     var splitCapacity = capacityList[i].split('To');
                     list.push(splitCapacity[0], splitCapacity[1]);
+                } else if (capacityList[i].indexOf('Plus') > -1) {
+                    var splitCapacity = capacityList[i].split('Plus');
+                    list.push(splitCapacity[0], 'Ten');                    
                 }
             }
             return this._getUniqueItems(list);

@@ -61,6 +61,7 @@
 <dom-module id="t-car-category-page">
 
     <template>
+        <style include="iron-flex"></style>
         <style include="travel-element-styles">
             :host {
                 display: block;
@@ -79,6 +80,66 @@
 
             .link {
                 color: var(--link-color,#0098ff);
+            }
+
+            .sorting .sorting-btn {
+                margin: 0;
+                padding: 0;
+                color: var(--grey-three,#bbbbbb);
+                border-bottom: 1px solid var(--grey-two, #eeeeee);
+                background: var(--light-color, #fff);
+                overflow: hidden;
+                cursor: pointer;
+            }
+            
+            .params iron-icon {
+                -webkit-transition: 0.3s all ease;
+                -moz-transition: 0.3s all ease;
+                -ms-transition: 0.3s all ease;
+                -o-transition: 0.3s all ease;
+                transition: 0.3s all ease;
+                -webkit-transform: rotate(90deg);
+                -moz-transform: rotate(90deg);
+                -ms-transform: rotate(90deg);
+                -o-transform: rotate(90deg);
+                transform: rotate(90deg);
+                /* position: absolute; */
+                display: none;
+                width: 17px;
+                height: 17px;
+                /* margin-left: 5px; */
+                /* top: 50%; */
+                margin-top: -5px;
+            }
+            
+            .params .active iron-icon {
+                display: -ms-inline-flexbox;
+                display: -webkit-inline-flex;
+                display: inline-flex;
+            }
+            
+            .params .active.desc iron-icon {
+                -webkit-transform: rotate(-90deg);
+                -moz-transform: rotate(-90deg);
+                -ms-transform: rotate(-90deg);
+                -o-transform: rotate(-90deg);
+                transform: rotate(-90deg);
+            }
+            
+            .params a {
+                /* display: block; */
+                padding: 16px 0;
+                font-size: var(--font-12, 12px);
+                text-decoration: none;
+                color: inherit;
+                width: 100%;
+                position: relative;
+                text-align: center;
+                border-right: 1px solid var(--grey-two, #eeeeee);
+            }
+            
+            .params:last-child a {
+                border-right: 0;
             }
         </style>
 
@@ -112,12 +173,23 @@
             <div class="error-message section-small font-12 secondary-text">
                 <div>We could not find any cars for your search.</div>
                 <div>
-                    <a class="link" on-click="_redirectToPage" >modify search</a>
+                    <a class="link" on-tap="_redirectToPage" >modify search</a>
                 </div>
             </div>
         </template>
 
         <div class="container" hidden$="[[!list.length]]">
+            <div class="sorting paper-header margin-bottom" id="sortCntr">
+                <template is="dom-if" if$="[[withSorting]]">
+                    <div class=" layout horizontal sorting-btn">
+                        <template is="dom-repeat" items="{{sortParams}}" has-scroller="false">
+                            <div class=" params flex center center-justified horizontal layout">
+                                <a id$="{{item.key}}" data-value$="{{item.value}}" on-tap="_sortBy" class$="{{_getSortingClass(item)}}">{{item.key}}<iron-icon icon="arrow-back" ></iron-icon></a>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
             <template id="list" is="dom-repeat" items="[[list]]">
                 <t-car-category-item
                     class="categoryItem" 
@@ -206,6 +278,39 @@
                         type: Array,
                         value: [],
                         observer: '_renderList'
+                    },
+
+                    /**
+                     * Sorting parameters to be displayed
+                     */
+                    sortParams: {
+                        type: Object,
+                        value: function () {
+                            return [{ 
+                                "key": "category", 
+                            }, { 
+                                "key": "Occupancy"
+                            }, { 
+                                "key": "Price",
+                                "default": true
+                            }];
+                        }
+                    },
+
+                    /**
+                     * Controls the sorting type
+                     */
+                    sortBy: {
+                        type: String,
+                        value: "+desc"
+                    },
+
+                    /**
+                     * Turns the display of sorting controls
+                     */
+                    withSorting: {
+                        type: Boolean,
+                        value: false
                     }
                 },
 
@@ -242,6 +347,7 @@
                     this.$.resultApi.queryParams = [{
                         '$select': 'Category,Capacity,Baggage,AirConditioning,Transmission,Doors,HeroImageUrl'
                     }];
+
                     this.$.resultApi.search();
                     this.$.filterApi.getFilters();
                 },
@@ -351,7 +457,62 @@
                  */
                 _redirectToPage: function() {
                     this.fire('go-to-search');
+                },
+
+                _getSortingClass: function (item) {
+
+                    if (item.default){
+                        var sortingClass = "active";                    
+                        if (this.sortBy === "+desc") {
+                            sortingClass += " desc";
+                        }
+                        return sortingClass;
+                    }
+
+                    return false;
+                },
+
+                _sortBy: function (e) {
+                    var sortElement = e.currentTarget;
+                    var isAscending = this.sortBy === "+asc";
+
+                    if (sortElement.className.search("active") < 0) {
+                        isAscending = true;
+                        sortElement.classList.remove("desc");
+                        this.sortParams.forEach(function (param) {
+                            this.$$('#' + param.key).classList.remove("active");
+                        },this);
+                        sortElement.classList.add("active");
+                    } else {                        
+                        if (sortElement.className.search("desc") >= 0) {
+                            isAscending = true;
+                            sortElement.classList.remove("desc");
+                        } else {
+                            isAscending = false;
+                            sortElement.classList.add("desc");
+                        }
+                    }
+
+                    if (isAscending)
+                        this.sortBy = "+asc";
+                    else
+                        this.sortBy = "+desc";
+
+                    this._updateList(sortElement.id.toLowerCase());
+                },
+
+                _updateList: function (sortParam) {
+                    if (sortParam === 'occupancy') {
+                        sortParam = 'capacityRange'
+                    }
+                    this.list = this.list.sort(function(a, b) {
+                        var aPrice = a[sortParam];
+                        var bPrice = b[sortParam];
+                        return this.sortBy === '+asc' ?  (aPrice > bPrice) : (bPrice > aPrice);
+                    }.bind(this));
+                    this.$.list.render();
                 }
+
             });
 
         })();
